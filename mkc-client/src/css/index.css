@@ -1,0 +1,14 @@
+.custom-layout {
+    /*border: 10px solid black;*/
+    /*background: rgb(246,248,250);*/
+}
+.custom-app-bar {
+    background: rgb(29,45,82)!important;
+}
+
+.custom-menu {
+    border: 2px solid black;
+}
+
+.text-field {
+}
