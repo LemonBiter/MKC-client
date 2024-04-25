@@ -1,34 +1,36 @@
 import * as React from 'react';
 import {
-    BooleanInput,
-    DateField, DateInput,
-    Edit,
-    Form,
-    Labeled, NumberInput,
-    PrevNextButtons,
-    ReferenceField, required,
-    SelectInput, SimpleForm,
-    TextField, TextInput,
-    Toolbar, useNotify,
-    useRecordContext, useRedirect,
-    useTranslate,
+    SimpleForm,
+    Create,
+    ReferenceInput,
+    TextInput,
+    DateInput,
+    AutocompleteInput,
+    required,
+    useNotify,
+    useRedirect,
+    getRecordFromLocation,
+    Toolbar,
+    Button,
+    PasswordInput,
+    ReferenceArrayInput,
+    NumberInput,
+    TextField,
+    useRecordContext, Edit,
 } from 'react-admin';
-import { Link as RouterLink } from 'react-router-dom';
-import {Card, CardContent, Box, Grid, Typography, Link, Divider} from '@mui/material';
-import Basket from './Basket';
-import Totals from './Totals';
+import CloseIcon from '@mui/icons-material/Close';
+import ClearIcon from '@mui/icons-material/Clear';
+import CreatableSelect from 'react-select/creatable'
+import '../../css/order.css'
 import {RichTextInput} from "ra-input-rich-text";
-import CreatableSelect from "react-select/creatable";
-import {useEffect, useState} from "react";
-import {dataProvider} from "../../dataProvider";
-import Zoom from "react-medium-image-zoom";
-import ClearIcon from "@mui/icons-material/Clear";
-import {useDispatch, useSelector} from "react-redux";
-import {update} from "../../app/order";
-import CloseIcon from "@mui/icons-material/Close";
 import generateShortId from "ssid";
-import {FormProvider, useFormContext} from "react-hook-form";
-import {findItemById} from "../../utils";
+import {dataProvider} from "../../dataProvider";
+import {Fragment, useEffect, useState} from "react";
+import {Box, Card, Divider, Grid, Typography} from "@mui/material";
+import Zoom from "react-medium-image-zoom";
+import { useSelector, useDispatch } from 'react-redux'
+import { decrement, increment, update } from '../../app/order'
+import _ from "lodash";
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -39,13 +41,19 @@ const roomOptions = [
     { value: 'bedroom1', label: 'bedroom 1' },
     { value: 'bedroom2', label: 'bedroom 2' },
     { value: 'bedroom3', label: 'bedroom 3' },
-]
-const MaterialItem = ({ room, m }) => {
-    const [fileUrl, setFileUrl] = useState('');
 
+]
+
+
+const MaterialItem = ({ onMaterialCountUpdate, room, m, index }) => {
+    const [fileUrl, setFileUrl] = useState('');
+    const handleCountChange = (event) => {
+        onMaterialCountUpdate(m, event.target.value);
+    }
+    // const countSource = `room.${room.label}.material.m.${m.label}link${m.value}`;
     useEffect(() => {
-        if (m.fileExist) {
-            m.id = m.value;
+        if (m && m.fileExist) {
+            // m.id = m.value;
             const fetchFile = async () => {
                 const result = await dataProvider.getOne('material', m);
                 const base64 = result.data.base64 || '';
@@ -56,7 +64,7 @@ const MaterialItem = ({ room, m }) => {
     }, []);
 
     return (
-        <Grid item xs={6} name="accessory">
+        <Grid item xs={6} name="material">
             <Grid container spacing={1} className="material-item">
                 <Grid className="detail" item xs={7}>
                     {fileUrl ? <Zoom>
@@ -70,20 +78,28 @@ const MaterialItem = ({ room, m }) => {
                 <Grid item xs={2}>
                     <NumberInput
                         defaultValue={1}
-                        name={m.value} min={1}
+                        min={1}
                         sx={{ width: 'auto' }}
-                        source="materialItem.count" />
+                        source={"material-" + m.id }
+                        onChange={(value) => handleCountChange(value)}
+                    />
                 </Grid>
             </Grid>
         </Grid>
     )
 }
 
-const AccessoryItem = ({ room, m }) => {
+const AccessoryItem = ({ onAccessoryCountUpdate, room, m }) => {
     const [fileUrl, setFileUrl] = useState('');
+    // const countSource = `room.${room.label}.accessory.${m.id}`;
+
+    const handleCountChange = (event) => {
+        onAccessoryCountUpdate(m, event.target.value);
+    }
+
     useEffect(() => {
         if (m.fileExist) {
-            m.id = m.value;
+            // m.id = m.value;
             const fetchFile = async () => {
                 const result = await dataProvider.getOne('accessory', m);
                 const base64 = result.data.base64 || '';
@@ -91,8 +107,8 @@ const AccessoryItem = ({ room, m }) => {
             }
             fetchFile();
         }
-
     }, []);
+
     return (
         <Grid item xs={6}>
             <Grid container spacing={1} className="accessory-item">
@@ -108,24 +124,34 @@ const AccessoryItem = ({ room, m }) => {
                 <Grid item xs={2}>
                     <NumberInput
                         defaultValue={1}
-                        name={m.value} min={1}
+                        min={1}
                         sx={{ width: 'auto' }}
-                        source="accessoryItemm.count" />
+                        source={"accessory-" + m.id }
+                        onChange={(value) => handleCountChange(value)}
+                    />
                 </Grid>
             </Grid>
         </Grid>
     )
 }
-const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, roomDetail }) => {
+const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) => {
     const [selectedMaterial, setSelectedMaterial] = useState([]);
     const [selectedAccessory, setSelectedAccessory] = useState([]);
-    // useEffect(() => {
-    //         const {material, accessory} = roomDetail;
-    //         const currentMaterialItem = Object.keys(material).filter((m) => m !== 'undefined')
-    //         const selectedMaterialArr = materialList.filter(each => currentMaterialItem.includes(each.id));
-    //         setSelectedMaterial(selectedMaterialArr);
-    // }, [materialList]);
+    const currentRoom = room.value;
+    const record = useRecordContext();
+    console.log(record)
+    const roomHistory = record?.roomInfo || null;
+    const details = roomHistory[currentRoom];
 
+    const material = details?.material || null;
+    const accessory  = details?.accessory || null;
+
+    const dispatch = useDispatch();
+    // const roomInfo = useSelector((state) => state.order.value)
+    useEffect(() => {
+        setSelectedMaterial(material);
+        setSelectedAccessory(accessory);
+    }, [material, accessory]);
 
     const materialListOptions = materialList.map(material => {
         return { value: material.id, label: material.detail, fileExist: material.fileExist }
@@ -135,31 +161,60 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, roomDetail 
         return { value: accessory.id, label: accessory.detail, fileExist: accessory.fileExist }
     })
 
-    const updateSelectedMaterial = (value) => {
-        console.log(value)
-        setSelectedMaterial(value);
+    useEffect(() => {
+        dispatch(update({ room: room.value, type: 'material', value: selectedMaterial  }));
+        dispatch(update({ room: room.value, type: 'accessory', value: selectedAccessory  }));
+    }, [selectedMaterial, selectedAccessory]);
+
+    const onMaterialCountUpdate = (obj, value) => {
+        if (obj && value) {
+            const updateSelectedMaterial = selectedMaterial.map(each => {
+                if (each.id === obj.id) {
+                    const objCopy = _.cloneDeep(each);
+                    const newObj = { count: parseInt(value) };
+                    Object.assign(objCopy, newObj);
+                    return objCopy;
+                }
+                return each;
+            });
+            setSelectedMaterial(updateSelectedMaterial);
+        }
     }
-    const updateSelectedAccessory = (value) => {
-        setSelectedAccessory(value);
+
+    const onAccessoryCountUpdate = (obj, value) => {
+        if (obj && value) {
+            const updateAccessoryMaterial = selectedAccessory.map(each => {
+                if (each.id === obj.id) {
+                    const objCopy = _.cloneDeep(each);
+                    const newObj = { count: parseInt(value) };
+                    Object.assign(objCopy, newObj);
+                    return objCopy;
+                }
+                return each;
+            });
+            setSelectedAccessory(updateAccessoryMaterial);
+        }
     }
+
+
     const removeRoom = (value) => {
         onRoomDelete(value);
     }
+
     return (
         <Card
             sx={{boxShadow: 'none', borderRadius: '0'}}
             className="room-card">
             <Box className="top">
-                <Typography variant="subtitle1" gutterBottom>
-                    {room.label}
-                </Typography>
+                {room.label}
                 <CloseIcon onClick={() => removeRoom(room.value)} className="close" />
             </Box>
             <Box className="middle">
                 <Box className="middle-1">
                     <CreatableSelect
+                        value={selectedMaterial}
                         className="material-select"
-                        onChange={(value) => updateSelectedMaterial(value)}
+                        onChange={(value) => setSelectedMaterial(value)}
                         options={materialListOptions}
                         isMulti
                         name="material" />
@@ -169,8 +224,9 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, roomDetail 
                 </Box>
                 <Box className="middle-2">
                     <CreatableSelect
+                        value={selectedAccessory}
                         className="material-select"
-                        onChange={(value) => updateSelectedAccessory(value)}
+                        onChange={(value) => setSelectedAccessory(value)}
                         options={accessoryListOptions}
                         isMulti
                         name="material" />
@@ -180,35 +236,122 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, roomDetail 
                 </Box>
             </Box>
             <Grid container spacing={2} className="bottom">
-                {selectedMaterial.map((m, i) => (
-                    <MaterialItem className="material-item" room={room} m={m} key={i} />
-                ))}
+                {selectedMaterial ? selectedMaterial.map((m, i) => (
+                    <MaterialItem onMaterialCountUpdate={onMaterialCountUpdate} className="material-item" room={room} m={m} key={i} />
+                )) : null}
             </Grid>
             <Grid container spacing={2} className="bottom">
-                {selectedAccessory.map((m, i) => (
-                    <AccessoryItem className="accessory-item" room={room} m={m} key={i} />
-                ))}
+                {selectedAccessory ? selectedAccessory.map((m, i) => (
+                    <AccessoryItem onAccessoryCountUpdate={onAccessoryCountUpdate} className="accessory-item" room={room} m={m} key={i} />
+                )) : null}
             </Grid>
         </Card>
     )
 }
 
+const RoomSelectBox = () => {
+    const record = useRecordContext();
+    const roomHistory = record?.roomInfo || null;
+    const [loading, setLoading] = useState(true);
+    const [selectedRoom, setSelectedRoom] = useState([]);
+    const [materialList, setMaterialList] = useState([]);
+    const [accessoryList, setAccessoryList] = useState([]);
+    // const roomInfo = useSelector((state) => state.order.value)
+    // console.log('roomInfo:', roomInfo);
 
 
+    useEffect(() => {
+        const fetchMaterialList = async () => {
+            const { data } = await dataProvider.getListWithoutFile('material');
+            setMaterialList(data);
+            setLoading(false);
+        }
+        const fetchAccessoryList = async () => {
+            const { data } = await dataProvider.getListWithoutFile('accessory');
+            setAccessoryList(data);
+            setLoading(false);
+        }
+        fetchMaterialList();
+        fetchAccessoryList();
+
+    }, []);
+
+
+    useEffect(() => {
+        if (roomHistory) {
+            const historyRoomLabel = Object.keys(roomHistory).map(eachRoom => { return { value: eachRoom, label: eachRoom }});
+            setSelectedRoom(historyRoomLabel);
+        }
+
+    }, [roomHistory]);
+    const handleRoomDelete = (value) => {
+        const roomSet = selectedRoom.filter(room => room.value !== value);
+        setSelectedRoom(roomSet);
+    }
+
+    const handleHeightIncrease = () => {
+        const roomBoxEl = document.getElementsByClassName('room-box')[0];
+        roomBoxEl.classList.add('room-box-on-click');
+    }
+
+    const handleHeightDecrease = () => {
+        const roomBoxEl = document.getElementsByClassName('room-box')[0];
+        roomBoxEl.classList.remove('room-box-on-click');
+    }
+
+    return <Box className="order-create-form-box-item layer-2">
+        {loading ? 'loading...' : <CreatableSelect value={selectedRoom}
+                                                   onMenuOpen={handleHeightIncrease}
+                                                   onMenuClose={handleHeightDecrease}
+                                                   onChange={(values) => setSelectedRoom(values)}
+                                                   options={roomOptions}
+                                                   isMulti
+                                                   name="room" />}
+        <Box className="room-box">
+            {selectedRoom.map((room, index) => {
+                return <RoomCard
+                    materialList={materialList}
+                    accessoryList={accessoryList}
+                    onRoomDelete={handleRoomDelete}
+                    key={index}
+                    index={index}
+                    room={room} />
+            })}
+        </Box>
+    </Box>
+}
 const OrderEdit = () => {
     const notify = useNotify();
     const redirect = useRedirect();
+    const record = useRecordContext();
+    const [loading, setLoading] = useState(true);
+    const [selectedRoom, setSelectedRoom] = useState([]);
+    const [materialList, setMaterialList] = useState([]);
+    const [accessoryList, setAccessoryList] = useState([]);
     const roomInfo = useSelector((state) => state.order.value)
-
+    useEffect(() => {
+        const fetchMaterialList = async () => {
+            const { data } = await dataProvider.getListWithoutFile('material');
+            setMaterialList(data);
+            setLoading(false);
+        }
+        const fetchAccessoryList = async () => {
+            const { data } = await dataProvider.getListWithoutFile('accessory');
+            setAccessoryList(data);
+            setLoading(false);
+        }
+        fetchMaterialList();
+        fetchAccessoryList();
+    }, []);
     const handleSave = async (values) => {
         try {
             if (values) {
                 const id = generateShortId()
                 Object.defineProperty(values, 'type', { value: 'ordered', enumerable: true })
-                Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
-                // Object.defineProperty(values, 'roomInfo', { value: roomInfo, enumerable: true });
+                // Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
+                Object.defineProperty(values, 'roomInfo', { value: roomInfo, enumerable: true });
                 const jsonData = JSON.stringify(values);
-                const res = await dataProvider.create('order', values);
+                const res = await dataProvider.update('order', values);
                 if (res.success) {
                     notify('创建成功');
                     redirect('/order');
@@ -280,82 +423,22 @@ const OrderEdit = () => {
                 <Box className="order-create-aside"></Box>
             </SimpleForm>
         </Edit>
-    )
-};
-
-const RoomSelectBox = () => {
-    const [loading, setLoading] = useState(true);
-    const [selectedRoom, setSelectedRoom] = useState([]);
-    const [materialList, setMaterialList] = useState([]);
-    const [accessoryList, setAccessoryList] = useState([]);
-    const [roomDetail, setRoomDetail] = useState({});
-    const record = useRecordContext();
-    console.log(record)
-
-    useEffect(() => {
-        if (record && record?.room) {
-            const rooms = Object.keys(record.room);
-            if (Array.isArray(rooms) && rooms.length > 0) {
-                const historyRooms = rooms.map(r => { return { value: r, label: r }});
-                setSelectedRoom(historyRooms);
-            }
-            const roomArr = rooms.reduce((pre, roomName) => {
-                pre[roomName] = record.room[roomName]
-                return pre;
-            }, {})
-            setRoomDetail(roomArr);
-        }
-    }, []);
-
-    useEffect(() => {
-        const fetchMaterialList = async () => {
-            const { data } = await dataProvider.getListWithoutFile('material');
-            setMaterialList(data);
-            setLoading(false);
-        }
-        const fetchAccessoryList = async () => {
-            const { data } = await dataProvider.getListWithoutFile('accessory');
-            setAccessoryList(data);
-            setLoading(false);
-        }
-        fetchMaterialList();
-        fetchAccessoryList();
-    }, []);
-
-    const handleRoomDelete = (value) => {
-        const roomSet = selectedRoom.filter(room => room.value !== value);
-        setSelectedRoom(roomSet);
-    }
-
-    const handleHeightIncrease = () => {
-        const roomBoxEl = document.getElementsByClassName('room-box')[0];
-        roomBoxEl.classList.add('room-box-on-click');
-    }
-    const handleHeightDecrease = () => {
-        const roomBoxEl = document.getElementsByClassName('room-box')[0];
-        roomBoxEl.classList.remove('room-box-on-click');
-    }
-    return <Box className="order-create-form-box-item layer-2">
-        {loading ? 'loading...' : <CreatableSelect value={selectedRoom}
-                                                   onMenuOpen={handleHeightIncrease}
-                                                   onMenuClose={handleHeightDecrease}
-                                                   onChange={(values) => setSelectedRoom(values)}
-                                                   options={roomOptions}
-                                                   isMulti
-                                                   name="room" />}
-        <Box className="room-box">
-            {selectedRoom.map((room, index) => {
-                return <RoomCard
-                    source={room.label}
-                    materialList={materialList}
-                    accessoryList={accessoryList}
-                    onRoomDelete={handleRoomDelete}
-                    roomDetail={roomDetail[room.label]}
-                    key={index}
-                    room={room} />
-            })}
-        </Box>
-    </Box>
+    );
 }
-
 export default OrderEdit;
+
+/*
+
+1. 姓名
+2. 地址
+3. 电话
+4. 邮箱（可选）
+5. 下单时间
+6. 板子选项（下拉框）
+    6.1. 配件（下拉框）
+7. 额外信息
+
+ */
+
+
+

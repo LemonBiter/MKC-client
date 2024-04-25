@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash';
 import {
     SimpleForm,
     Create,
@@ -44,8 +45,11 @@ const roomOptions = [
 ]
 
 
-const MaterialItem = ({ room, m, index }) => {
+const MaterialItem = ({ onMaterialCountUpdate, room, m, index }) => {
     const [fileUrl, setFileUrl] = useState('');
+    const handleCountChange = (event) => {
+        onMaterialCountUpdate(m, event.target.value);
+    }
     // const countSource = `room.${room.label}.material.m.${m.label}link${m.value}`;
     useEffect(() => {
         if (m.fileExist) {
@@ -76,7 +80,8 @@ const MaterialItem = ({ room, m, index }) => {
                         defaultValue={1}
                         min={1}
                         sx={{ width: 'auto' }}
-                        source="count"
+                        source={"material-" + m.id }
+                        onChange={(value) => handleCountChange(value)}
                     />
                 </Grid>
             </Grid>
@@ -84,9 +89,14 @@ const MaterialItem = ({ room, m, index }) => {
     )
 }
 
-const AccessoryItem = ({ room, m }) => {
+const AccessoryItem = ({ onAccessoryCountUpdate, room, m }) => {
     const [fileUrl, setFileUrl] = useState('');
     // const countSource = `room.${room.label}.accessory.${m.id}`;
+
+    const handleCountChange = (event) => {
+        onAccessoryCountUpdate(m, event.target.value);
+    }
+
     useEffect(() => {
         if (m.fileExist) {
             m.id = m.value;
@@ -116,7 +126,8 @@ const AccessoryItem = ({ room, m }) => {
                         defaultValue={1}
                         min={1}
                         sx={{ width: 'auto' }}
-                        source="count"
+                        source={"accessory-" + m.id }
+                        onChange={(value) => handleCountChange(value)}
                     />
                 </Grid>
             </Grid>
@@ -141,12 +152,36 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
         dispatch(update({ room: room.value, type: 'accessory', value: selectedAccessory  }));
     }, [selectedMaterial, selectedAccessory]);
 
-    const updateSelectedMaterial = (value) => {
-        setSelectedMaterial(value);
+    const onMaterialCountUpdate = (obj, value) => {
+        if (obj && value) {
+            const updateSelectedMaterial = selectedMaterial.map(each => {
+                if (each.id === obj.id) {
+                    const objCopy = _.cloneDeep(each);
+                    const newObj = { count: parseInt(value) };
+                    Object.assign(objCopy, newObj);
+                    return objCopy;
+                }
+                return each;
+            });
+            setSelectedMaterial(updateSelectedMaterial);
+        }
     }
-    const updateSelectedAccessory = (value) => {
-        setSelectedAccessory(value);
+
+    const onAccessoryCountUpdate = (obj, value) => {
+        if (obj && value) {
+            const updateAccessoryMaterial = selectedAccessory.map(each => {
+                if (each.id === obj.id) {
+                    const objCopy = _.cloneDeep(each);
+                    const newObj = { count: parseInt(value) };
+                    Object.assign(objCopy, newObj);
+                    return objCopy;
+                }
+                return each;
+            });
+            setSelectedAccessory(updateAccessoryMaterial);
+        }
     }
+
     const removeRoom = (value) => {
         onRoomDelete(value);
     }
@@ -163,7 +198,7 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
             <Box className="middle-1">
                 <CreatableSelect
                     className="material-select"
-                    onChange={(value) => updateSelectedMaterial(value)}
+                    onChange={(value) => setSelectedMaterial(value)}
                     options={materialListOptions}
                     isMulti
                     name="material" />
@@ -174,7 +209,7 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
             <Box className="middle-2">
                 <CreatableSelect
                     className="material-select"
-                    onChange={(value) => updateSelectedAccessory(value)}
+                    onChange={(value) => setSelectedAccessory(value)}
                     options={accessoryListOptions}
                     isMulti
                     name="material" />
@@ -184,14 +219,14 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
             </Box>
         </Box>
         <Grid container spacing={2} className="bottom">
-            {selectedMaterial.map((m, i) => (
-                <MaterialItem className="material-item" room={room} m={m} key={i} />
-            ))}
+            {selectedMaterial ? selectedMaterial.map((m, i) => (
+                <MaterialItem onMaterialCountUpdate={onMaterialCountUpdate} className="material-item" room={room} m={m} key={i} />
+            )) : null}
         </Grid>
         <Grid container spacing={2} className="bottom">
-            {selectedAccessory.map((m, i) => (
-                <AccessoryItem className="accessory-item" room={room} m={m} key={i} />
-            ))}
+            {selectedAccessory ? selectedAccessory.map((m, i) => (
+                <AccessoryItem onAccessoryCountUpdate={onAccessoryCountUpdate} className="accessory-item" room={room} m={m} key={i} />
+            )) : null}
         </Grid>
     </Card>
     )

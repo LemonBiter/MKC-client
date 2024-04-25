@@ -9,9 +9,11 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^16.6.0",
     "@mui/icons-material": "^5.15.15",
     "@reduxjs/toolkit": "^2.2.3",
     "axios": "^1.6.8",
+    "lodash": "^4.17.21",
     "ra-data-json-server": "^4.16.15",
     "ra-data-simple-rest": "^4.16.0",
     "ra-i18n-polyglot": "^4.16.15",

@@ -11,7 +11,7 @@ export const orderSlice = createSlice({
             if (!state.value[room]) {
                 state.value[room] = {};
             }
-            state.value[room][type] = [value]
+            state.value[room][type] = value;
         },
         increment: (state) => {
             state.value += 1
