@@ -52,8 +52,9 @@ const customEnglishMessages = {
             tabs: {
                 ordered: 'ORDERED',
                 preparing: 'PREPARING',
-                delivered: 'DELIVERED',
-                cancelled: 'CANCELLED',
+                delivered: 'DELIVERING',
+                assembling: 'ASSEMBLING',
+                completed: 'COMPLETED',
             }
         },
         accessory: {

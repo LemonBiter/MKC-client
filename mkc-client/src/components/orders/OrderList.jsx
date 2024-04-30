@@ -20,7 +20,7 @@ import {
     TextField,
     TextInput,
     TopToolbar,
-    useListContext, useDataProvider, useTranslate,
+    useListContext, useDataProvider, useTranslate, useGetIdentity,
 } from 'react-admin';
 import {useMediaQuery, Divider, Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody} from '@mui/material';
 
@@ -30,27 +30,46 @@ import AddressField from '../../visitors/AddressField';
 import MobileGrid from './MobileGrid';
 import '../../css/index.css'
 import OrderExtend from "./OrderExtend";
+import {OrderListContent} from "./OrderListContent";
+import OrderShow from "./OrderShow";
+import {useLocation} from "react-router";
+import {matchPath} from "react-router-dom";
+import OrderEdit from "./OrderEdit";
 const ListActions = () => (
-    <TopToolbar>
-        <CreateButton />
+    <TopToolbar sx={{ display: 'flex', alignItems: 'center'}}>
+        <CreateButton
+            variant="contained"
+            label="创建订单"
+            sx={{ height: '40px'}}
+        />
         <FilterButton />
-        <SelectColumnsButton />
+        {/*<SelectColumnsButton />*/}
         <ExportButton />
     </TopToolbar>
 );
 
 const OrderList = (props) => {
+    const { identity } = useGetIdentity();
+    const location = useLocation();
+    const matchCreate = matchPath('/order/create', location.pathname);
+    const matchShow = matchPath('/order/:id/show', location.pathname);
+    const matchEdit = matchPath('/order/:id/edit', location.pathname);
     return (
-    <List
-        hasCreate={true}
-        filterDefaultValues={{ status: 'ordered' }}
-        sort={{ field: 'date', order: 'DESC' }}
-        perPage={25}
-        filters={orderFilters}
-        actions={<ListActions />}
-    >
-        <TabbedDatagrid />
-    </List>
+        <>
+            <List
+                perPage={100}
+                sort={{ field: 'index', order: 'ASC' }}
+                filters={orderFilters}
+                filterDefaultValues={{ sales_id: identity && identity?.id }}
+                actions={<ListActions />}
+                pagination={false}
+                component="div"
+            >
+                <OrderListContent />
+            </List>
+            <OrderShow open={!!matchShow} id={matchShow?.params.id} />
+            {/*<OrderEdit open={!!matchEdit} id={matchEdit?.params.id} />*/}
+        </>
 )};
 
 const orderFilters = [
@@ -70,130 +89,6 @@ const orderFilters = [
     <TextInput source="total_gte" />,
     <NullableBooleanInput source="returned" />,
 ];
-
-
-
-const TabbedDatagrid = () => {
-    const translate = useTranslate();
-    const tabs = [
-        { id: 'ordered', name: translate('resources.order.tabs.ordered') },
-        { id: 'preparing', name: translate('resources.order.tabs.preparing') },
-        { id: 'delivered', name: translate('resources.order.tabs.delivered') },
-        { id: 'cancelled', name: translate('resources.order.tabs.cancelled') },
-    ];
-    const listContext = useListContext();
-    const { filterValues, setFilters, displayedFilters } = listContext;
-    const isXSmall = useMediaQuery(theme =>
-        theme.breakpoints.down('sm')
-    );
-    const handleChange = useCallback(
-        (event, value) => {
-            setFilters &&
-                setFilters(
-                    { ...filterValues, status: value },
-                    displayedFilters,
-                    false // no debounce, we want the filter to fire immediately
-                );
-        },
-        [displayedFilters, filterValues, setFilters]
-    );
-
-    return (
-        <Fragment>
-            <Tabs
-                variant="fullWidth"
-                centered
-                value={filterValues.status}
-                indicatorColor="primary"
-                onChange={handleChange}
-            >
-                {tabs.map(choice => (
-                    <Tab
-                        key={choice.id}
-                        label={
-                            <span>
-                                {choice.name} (
-                                <Count
-                                    filter={{
-                                        ...filterValues,
-                                        status: choice.name,
-                                    }}
-                                    sx={{ lineHeight: 'inherit' }}
-                                />
-                                )
-                            </span>
-                        }
-                        value={choice.id}
-                    />
-                ))}
-            </Tabs>
-            <Divider />
-            {isXSmall ? (
-                <MobileGrid />
-            ) : (
-                <>
-                    {filterValues.status === 'ordered' && (
-                        <DatagridConfigurable
-                            expand={OrderExtend}
-                            rowClick="expand"
-                            sx={{
-                                "& .RaDatagrid-row": {
-                                },
-                            }}
-                            size="medium"
-                            omit={['total_ex_taxes', 'delivery_fees', 'taxes']}
-                        >
-                            <TextField className="text-field" source="id" label="reference" />
-                            <TextField className="text-field"  source="name" />
-                            <TextField className="text-field"  source="address" />
-                            <TextField className="text-field"  source="phone" />
-                            <DateField className="text-field"  source="published_date" showTime />
-                            <EditButton />
-                        </DatagridConfigurable>
-                    )}
-                    {filterValues.status === 'preparing' && (
-                        <DatagridConfigurable
-                            expand={OrderExtend}
-                            rowClick="expand"
-                            sx={{
-                                "& .RaDatagrid-row": {
-                                },
-                            }}
-                            size="medium"
-                            omit={['total_ex_taxes', 'delivery_fees', 'taxes']}
-                        >
-                            <TextField className="text-field" source="id" label="reference" />
-                            <TextField className="text-field"  source="name" />
-                            <TextField className="text-field"  source="address" />
-                            <TextField className="text-field"  source="phone" />
-                            <DateField className="text-field"  source="published_date" showTime />
-                            <EditButton />
-                        </DatagridConfigurable>
-                    )}
-                    {filterValues.status === 'cancelled' && (
-                        <DatagridConfigurable
-                            expand={OrderExtend}
-                            rowClick="expand"
-                            sx={{
-                                "& .RaDatagrid-row": {
-                                },
-                            }}
-                            size="medium"
-                            omit={['total_ex_taxes', 'delivery_fees', 'taxes']}
-                        >
-                            <TextField className="text-field" source="id" label="reference" />
-                            <TextField className="text-field"  source="name" />
-                            <TextField className="text-field"  source="address" />
-                            <TextField className="text-field"  source="phone" />
-                            <DateField className="text-field"  source="published_date" showTime />
-                            <EditButton />
-                        </DatagridConfigurable>
-                    )}
-                </>
-            )}
-        </Fragment>
-    );
-};
 
 export default OrderList;
 

@@ -53,7 +53,8 @@ const customChineseMessages = {
                 ordered: '已下单',
                 preparing: '制作中',
                 delivered: '已送达',
-                cancelled: '已取消',
+                assembling: '安装中',
+                completed: '已完成',
             }
         },
         accessory: {

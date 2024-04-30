@@ -6,6 +6,7 @@ import {
     TextInput,
     DateInput,
     AutocompleteInput,
+    NumberInput,
     required,
     useNotify,
     useRedirect,
@@ -44,7 +45,9 @@ const MaterialCreate = () => {
             if (values) {
                 const id = generateShortId()
                 Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
-                Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                if (displayImg) {
+                    Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                }
                 const jsonData = JSON.stringify(values);
                 const res = await dataProvider.create('material', values);
                 if (res.success) {
@@ -71,7 +74,6 @@ const MaterialCreate = () => {
                 setDisplayImg(e.target.result)
             })
         })
-
     }
     return (
         <Create>
@@ -97,12 +99,22 @@ const MaterialCreate = () => {
 
                     </Box>
                     <Box className="form-box-item right" >
-                        <TextInput source="detail"
-                                   validate={[required()]}
-                                   fullWidth
-                                   multiline
-                                   label="物料详情"
-                                   isRequired />
+                        <Box flex>
+                            <TextInput source="detail"
+                                       variant="filled"
+                                       validate={[required()]}
+                                       fullWidth
+                                       multiline
+                                       label="物料名称"
+                                       isRequired />
+                            <TextInput source="position"
+                                       variant="filled"
+                                       sx={{marginRight: '10px'}}
+                                       validate={[required()]}
+                                       label="摆放位置"
+                                       isRequired />
+                        </Box>
+
                     </Box>
                 </Box>
             </SimpleForm>

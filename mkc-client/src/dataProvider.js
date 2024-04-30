@@ -54,7 +54,6 @@ export const dataProvider = {
         try {
             let url= `${apiUrl}/${resource}/getListWithoutFile`;
             return request.get(url).then((resp) => {
-                console.log(resp)
                 return   {
                     data: resp.data.data,
                     total: resp.data.total,
@@ -102,11 +101,10 @@ export const dataProvider = {
         }));
     },
 
-    update: (resource, params) => {
-        return request.put(`${apiUrl}/${resource}/${params.id}`, params).then((resp) => {
-            console.log(resp)
+    update: (resource, params, query) => {
+        return request.put(`${apiUrl}/${resource}/${params.id}${query??''}`, params).then((resp) => {
             return   {
-                success: resp.data.success,
+                success: resp.data?.success,
             }
         });
     },
@@ -140,7 +138,8 @@ export const dataProvider = {
 
 
     delete: (resource, params) => {
-        return request.delete(`${apiUrl}/${resource}/${params.id}`, params).then((resp) => {
+        console.log(params);
+        return request.delete(`${apiUrl}/${resource}/${params.id}`, { data: params }).then((resp) => {
             return   {
                 success: resp.data.success,
             }

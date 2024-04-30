@@ -13,9 +13,10 @@ import {
     List,
     Datagrid,
     ReferenceField,
-    TextField, EditButton,
+    TextField, EditButton, Title,
 } from "react-admin";
 import { Route } from 'react-router';
+import { BrowserRouter } from 'react-router-dom'
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import PostIcon from "@mui/icons-material/Book";
 import UserIcon from "@mui/icons-material/Group";
@@ -36,31 +37,31 @@ import orders from "./components/orders";
 import material from "./components/material";
 import MaterialList from "./components/material/materialList";
 import accessory from "./components/accessory";
-
+import OrderEdit from "./components/orders/OrderEdit"
+// import { BrowserRouter } from 'react-router-dom';
 
 
 export const App = () => {
     return (
-  <Admin
-      dataProvider={dataProvider}
-        layout={layout}
-         loginPage={LoginPage}
-         i18nProvider={i18nProvider}
-         authProvider={authProvider}
-         dashboard={Dashboard}>
-      <Resource
-      name="order"
-      {...orders}
-      options={{ label: 'Orders' }}
-      />
-      <Resource
-          {...material}
-          options={{label: 'Material'}}
-          name="material" />
-      <Resource
-          {...accessory}
-          options={{label: 'Accessory'}}
-          name="accessory" />
-  </Admin>
+          <Admin
+                dataProvider={dataProvider}
+                layout={layout}
+                 loginPage={LoginPage}
+                 i18nProvider={i18nProvider}
+                 authProvider={authProvider}
+                 dashboard={Dashboard}>
+              <Title title="Modern Kitchens Cabinets Admin"/>
+              <Resource
+                  name="order"
+                  {...orders} />
+              <Resource
+                  {...material}
+                  options={{label: 'Material'}}
+                  name="material" />
+              <Resource
+                  {...accessory}
+                  options={{label: 'Accessory'}}
+                  name="accessory" />
+          </Admin>
 )};
 

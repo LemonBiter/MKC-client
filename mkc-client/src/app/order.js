@@ -7,25 +7,31 @@ export const orderSlice = createSlice({
     },
     reducers: {
         update: (state, action) => {
-            const { room, type, value } = action.payload;
-            if (!state.value[room]) {
-                state.value[room] = {};
+            const { id, room, count, label, position, type } = action.payload;
+            if (id && room && count > -1) {
+                if (!state.value[room]) {
+                    state.value[room] = {};
+                }
+                if (!state.value[room][type]) {
+                    state.value[room][type] = {};
+                }
+                state.value[room][type][id] = { label, count, position };
             }
-            state.value[room][type] = value;
         },
-        increment: (state) => {
-            state.value += 1
-        },
-        decrement: (state) => {
-            state.value -= 1
-        },
-        incrementByAmount: (state, action) => {
-            state.value += action.payload
+        removedSelection: (state, action) => {
+            const { id, room, type } = action.payload;
+            if (room) {
+                if (id) {
+                    delete state.value[room][type][id];
+                } else {
+                    delete state.value[room];
+                }
+            }
         },
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { update, increment, decrement, incrementByAmount } = orderSlice.actions
+export const { removedSelection, update, updateOption, increment, decrement, incrementByAmount } = orderSlice.actions
 
 export default orderSlice.reducer

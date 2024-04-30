@@ -10,27 +10,23 @@ import {
     required,
     useNotify,
     useRedirect,
-    getRecordFromLocation,
+    SaveButton,
     Toolbar,
-    Button,
-    PasswordInput,
-    ReferenceArrayInput,
-    NumberInput,
-    TextField,
-    useRecordContext,
+    useRecordContext, TopToolbar, ShowButton, ListButton,
 } from 'react-admin';
 import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from '@mui/icons-material/Clear';
 import CreatableSelect from 'react-select/creatable'
 import '../../css/order.css'
+import OrderAside from './OrderAside'
 import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Divider, Grid, Typography} from "@mui/material";
+import {Box, Card, Divider, Grid, Typography, Dialog, TextField} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
-import { decrement, increment, update } from '../../app/order'
+import { removedSelection, update } from '../../app/order'
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -45,160 +41,153 @@ const roomOptions = [
 ]
 
 
-const MaterialItem = ({ onMaterialCountUpdate, room, m, index }) => {
-    const [fileUrl, setFileUrl] = useState('');
-    const handleCountChange = (event) => {
-        onMaterialCountUpdate(m, event.target.value);
-    }
-    // const countSource = `room.${room.label}.material.m.${m.label}link${m.value}`;
+const MaterialItem = ({ room, m, index }) => {
+    const [materialDetail, setMaterialDetail] = useState({});
+    const dispatch = useDispatch();
     useEffect(() => {
-        if (m.fileExist) {
-            m.id = m.value;
-            const fetchFile = async () => {
-                const result = await dataProvider.getOne('material', m);
-                const base64 = result.data.base64 || '';
-                setFileUrl(base64);
-            }
-            fetchFile();
-        }
-    }, []);
+        dispatch(update({
+            id: m.value,
+            position: m.position,
+            label: m.label,
+            room: room.value,
+            count: 1,
+            type: 'material'
+        }))
+    }, [1]);
+
+    useEffect(() => {
+        dispatch(update(materialDetail));
+    }, [materialDetail]);
+
+
+    const handleCountChange = (event) => {
+        setMaterialDetail({id: m.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'material' });
+    }
 
     return (
-        <Grid item xs={6} name="material">
-            <Grid container spacing={1} className="material-item">
-                <Grid className="detail" item xs={7}>
-                    {fileUrl ? <Zoom>
-                        <img src={fileUrl} alt='' />
-                    </Zoom> : null}
-                    {m.label}
-                </Grid>
-                <Grid item xs={1}>
-                    <ClearIcon />
-                </Grid>
-                <Grid item xs={2}>
-                    <NumberInput
-                        defaultValue={1}
-                        min={1}
-                        sx={{ width: 'auto' }}
-                        source={"material-" + m.id }
-                        onChange={(value) => handleCountChange(value)}
-                    />
-                </Grid>
-            </Grid>
-        </Grid>
+            <Box className="material-item" paddingLeft={3}>
+                <Box sx={{width: '300px', whiteSpace: 'normal', wordBreak:'break-all'}}>
+                    <Typography >
+                        {m.label}
+                    </Typography>
+                </Box>
+                <ClearIcon />
+                <TextField
+                    type="number"
+                    variant="standard"
+                    label="数量"
+                    defaultValue={1}
+                    min={1}
+                    sx={{ width: '100px' }}
+                    onChange={(value) => handleCountChange(value)}
+                />
+                <Typography color="textSecondary"
+                            variant="subtitle2"
+                            sx={{width: '90px'}}
+                            marginLeft={2} >
+                    (位置：{m.position ? m.position : '未知'})
+                </Typography>
+            </Box>
     )
 }
 
-const AccessoryItem = ({ onAccessoryCountUpdate, room, m }) => {
-    const [fileUrl, setFileUrl] = useState('');
-    // const countSource = `room.${room.label}.accessory.${m.id}`;
-
-    const handleCountChange = (event) => {
-        onAccessoryCountUpdate(m, event.target.value);
-    }
+const AccessoryItem = ({ room, m, index }) => {
+    const [accessoryDetail, setAccessoryDetail] = useState({});
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(update({
+            id: m.value,
+            position: m.position,
+            label: m.label,
+            room: room.value,
+            count: 1,
+            type: 'accessory'
+        }))
+    }, [1]);
 
     useEffect(() => {
-        if (m.fileExist) {
-            m.id = m.value;
-            const fetchFile = async () => {
-                const result = await dataProvider.getOne('accessory', m);
-                const base64 = result.data.base64 || '';
-                setFileUrl(base64);
-            }
-            fetchFile();
-        }
+        dispatch(update(accessoryDetail));
+    }, [accessoryDetail]);
 
-    }, []);
+    const handleCountChange = (event) => {
+        setAccessoryDetail({id: m.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'accessory' });
+    }
+
     return (
-        <Grid item xs={6}>
-            <Grid container spacing={1} className="accessory-item">
-                <Grid className="detail" item xs={7}>
-                    {fileUrl ? <Zoom>
-                        <img src={fileUrl} alt='' />
-                    </Zoom> : null}
+        <Box className="accessory-item" paddingLeft={3}>
+            <Box sx={{width: '300px', whiteSpace: 'normal', wordBreak:'break-all'}}>
+                <Typography >
                     {m.label}
-                </Grid>
-                <Grid item xs={1}>
-                    <ClearIcon />
-                </Grid>
-                <Grid item xs={2}>
-                    <NumberInput
-                        defaultValue={1}
-                        min={1}
-                        sx={{ width: 'auto' }}
-                        source={"accessory-" + m.id }
-                        onChange={(value) => handleCountChange(value)}
-                    />
-                </Grid>
-            </Grid>
-        </Grid>
+                </Typography>
+            </Box>
+            <ClearIcon />
+            <TextField
+                type="number"
+                variant="standard"
+                label="数量"
+                defaultValue={1}
+                min={1}
+                sx={{ width: '100px' }}
+                onChange={(value) => handleCountChange(value)}
+            />
+            <Typography color="textSecondary"
+                        variant="subtitle2"
+                        sx={{width: '90px'}}
+                        marginLeft={2} >
+                (位置：{m.position ? m.position : '未知'})
+            </Typography>
+        </Box>
     )
 }
 const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) => {
     const [selectedMaterial, setSelectedMaterial] = useState([]);
     const [selectedAccessory, setSelectedAccessory] = useState([]);
+    const roomInfo = useSelector((state) => state.order.value);
     const dispatch = useDispatch();
-    const roomInfo = useSelector((state) => state.order.value)
     const materialListOptions = materialList.map(material => {
-        return { value: material.id, label: material.detail, fileExist: material.fileExist }
+        return { value: material.id, label: material.detail, position: material?.position, fileExist: material.fileExist }
     })
-
     const accessoryListOptions = accessoryList.map(accessory => {
-        return { value: accessory.id, label: accessory.detail, fileExist: accessory.fileExist }
+        return { value: accessory.id, label: accessory.detail, position: accessory?.position, fileExist: accessory.fileExist }
     })
 
     useEffect(() => {
-        dispatch(update({ room: room.value, type: 'material', value: selectedMaterial  }));
-        dispatch(update({ room: room.value, type: 'accessory', value: selectedAccessory  }));
-    }, [selectedMaterial, selectedAccessory]);
+        console.log('roomInfo:', roomInfo);
+    }, [roomInfo]);
 
-    const onMaterialCountUpdate = (obj, value) => {
-        if (obj && value) {
-            const updateSelectedMaterial = selectedMaterial.map(each => {
-                if (each.id === obj.id) {
-                    const objCopy = _.cloneDeep(each);
-                    const newObj = { count: parseInt(value) };
-                    Object.assign(objCopy, newObj);
-                    return objCopy;
-                }
-                return each;
-            });
-            setSelectedMaterial(updateSelectedMaterial);
+    const handleUpdateMaterial = (value, actionMeta) => {
+        if (actionMeta.removedValue) {
+            const removed = actionMeta?.removedValue?.value
+            dispatch(removedSelection({ id: removed, room: room.value, type: 'material' }))
         }
+        setSelectedMaterial(value)
     }
 
-    const onAccessoryCountUpdate = (obj, value) => {
-        if (obj && value) {
-            const updateAccessoryMaterial = selectedAccessory.map(each => {
-                if (each.id === obj.id) {
-                    const objCopy = _.cloneDeep(each);
-                    const newObj = { count: parseInt(value) };
-                    Object.assign(objCopy, newObj);
-                    return objCopy;
-                }
-                return each;
-            });
-            setSelectedAccessory(updateAccessoryMaterial);
+    const handleUpdateAccessory = (value, actionMeta) => {
+        if (actionMeta.removedValue) {
+            const removed = actionMeta?.removedValue?.value
+            dispatch(removedSelection({ id: removed, room: room.value, type: 'accessory' }))
         }
-    }
-
-    const removeRoom = (value) => {
-        onRoomDelete(value);
+        setSelectedAccessory(value)
     }
 
     return (
     <Card
         sx={{boxShadow: 'none', borderRadius: '0'}}
         className="room-card">
+        <Box position="relative">
+            <Divider textAlign="left" sx={{margin: '30px 0 10px 0'}}><h2>{room.label}</h2></Divider>
+            <CloseIcon sx={{position:"absolute", top: '10px', right: '20px', cursor: 'pointer'}}
+                       onClick={() => removeRoom(room.value)} className="close" />
+        </Box>
+
         <Box className="top">
-            {/*<TextInput source="room.name" defaultValue={room.label} disabled />*/}
-            <CloseIcon onClick={() => removeRoom(room.value)} className="close" />
         </Box>
         <Box className="middle">
             <Box className="middle-1">
                 <CreatableSelect
                     className="material-select"
-                    onChange={(value) => setSelectedMaterial(value)}
+                    onChange={(value, actionMeta) => handleUpdateMaterial(value, actionMeta)}
                     options={materialListOptions}
                     isMulti
                     name="material" />
@@ -209,7 +198,7 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
             <Box className="middle-2">
                 <CreatableSelect
                     className="material-select"
-                    onChange={(value) => setSelectedAccessory(value)}
+                    onChange={(value, actionMeta) => handleUpdateAccessory(value, actionMeta)}
                     options={accessoryListOptions}
                     isMulti
                     name="material" />
@@ -218,16 +207,26 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
                 </Typography>
             </Box>
         </Box>
-        <Grid container spacing={2} className="bottom">
-            {selectedMaterial ? selectedMaterial.map((m, i) => (
-                <MaterialItem onMaterialCountUpdate={onMaterialCountUpdate} className="material-item" room={room} m={m} key={i} />
-            )) : null}
-        </Grid>
-        <Grid container spacing={2} className="bottom">
-            {selectedAccessory ? selectedAccessory.map((m, i) => (
-                <AccessoryItem onAccessoryCountUpdate={onAccessoryCountUpdate} className="accessory-item" room={room} m={m} key={i} />
-            )) : null}
-        </Grid>
+
+        <Box className="bottom">
+            <Box className='bottom-left'>
+                {selectedMaterial?.length ? <Divider textAlign="left" sx={{margin: '30px 0 10px 0'}}><h4>物料列表</h4></Divider> : null}
+                {selectedMaterial?.length ? selectedMaterial.map((m, i) => (
+                    <MaterialItem
+                        className="material-item"
+                        room={room}
+                        m={m}
+                        key={i} />
+                )) : null}
+            </Box>
+            <Box className='bottom-right'>
+                {selectedAccessory?.length ? <Divider textAlign="left" sx={{margin: '30px 0 10px 0'}}>配件列表</Divider> : null}
+                {selectedAccessory?.length ? selectedAccessory.map((m, i) => (
+                    <AccessoryItem className="accessory-item" room={room} m={m} key={i} />
+                )) : null}
+            </Box>
+
+        </Box>
     </Card>
     )
 }
@@ -237,6 +236,7 @@ const RoomSelectBox = () => {
     const [selectedRoom, setSelectedRoom] = useState([]);
     const [materialList, setMaterialList] = useState([]);
     const [accessoryList, setAccessoryList] = useState([]);
+    const dispatch = useDispatch();
     useEffect(() => {
         const fetchMaterialList = async () => {
             const { data } = await dataProvider.getListWithoutFile('material');
@@ -252,10 +252,10 @@ const RoomSelectBox = () => {
         fetchAccessoryList();
 
     }, []);
-    const handleRoomDelete = (value) => {
-        const roomSet = selectedRoom.filter(room => room.value !== value);
-        setSelectedRoom(roomSet);
-    }
+    // const handleRoomDelete = (value) => {
+    //     const roomSet = selectedRoom.filter(room => room.value !== value);
+    //     setSelectedRoom(roomSet);
+    // }
 
     const handleHeightIncrease = () => {
         const roomBoxEl = document.getElementsByClassName('room-box')[0];
@@ -267,22 +267,29 @@ const RoomSelectBox = () => {
         roomBoxEl.classList.remove('room-box-on-click');
     }
 
+    const handleRoomUpdate = (values, actionMeta) => {
+        if (actionMeta.removedValue) {
+            const removed = actionMeta?.removedValue?.value
+            dispatch(removedSelection({ room: removed }))
+        }
+        setSelectedRoom(values);
+    }
+
     return <Box className="order-create-form-box-item layer-2">
-        {loading ? 'loading...' : <CreatableSelect value={selectedRoom}
-                                                   onMenuOpen={handleHeightIncrease}
+        {loading ? 'loading...' : <CreatableSelect onMenuOpen={handleHeightIncrease}
                                                    onMenuClose={handleHeightDecrease}
-                                                   onChange={(values) => setSelectedRoom(values)}
+                                                   // value={selectedRoom}
+                                                   onChange={(values,actionMeta) => handleRoomUpdate(values, actionMeta)}
                                                    options={roomOptions}
                                                    isMulti
                                                    name="room" />}
         <Box className="room-box">
             {selectedRoom.map((room, index) => {
                 return <RoomCard
-                    // source="room"
                     materialList={materialList}
                     accessoryList={accessoryList}
-                    onRoomDelete={handleRoomDelete}
-                    key={index}
+                    // onRoomDelete={handleRoomDelete}
+                    key={room.value}
                     index={index}
                     room={room} />
             })}
@@ -317,7 +324,7 @@ const OrderCreate = () => {
         try {
             if (values) {
                 const id = generateShortId()
-                Object.defineProperty(values, 'type', { value: 'ordered', enumerable: true })
+                Object.defineProperty(values, 'stage', { value: 'ordered', enumerable: true })
                 Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
                 Object.defineProperty(values, 'roomInfo', { value: roomInfo, enumerable: true });
                 const jsonData = JSON.stringify(values);
@@ -335,8 +342,12 @@ const OrderCreate = () => {
 
     }
     return (
-        <Create>
-            <SimpleForm className="order-create-simple-form-wrap" warnWhenUnsavedChanges onSubmit={handleSave}>
+        // <Dialog open={true}>
+            <Create aside={<OrderAside roomInfo={roomInfo} />} actions={<CreateActions />}>
+            <SimpleForm toolbar={<CreateToolBar />}
+                        className="order-create-simple-form-wrap"
+                        warnWhenUnsavedChanges
+                        onSubmit={handleSave}>
                 <Box className="order-create-form-box-wrap">
                     <Box className="order-create-form-box-item layer-1" >
                         <Typography variant="h6" gutterBottom>
@@ -346,18 +357,23 @@ const OrderCreate = () => {
                             <Box flex={1} mr={{ xs: 0, sm: '0.5em' }}>
                                 <TextInput source="name"
                                            validate={[required()]}
+                                           variant="standard"
                                            label="姓名"
                                            isRequired />
                             </Box>
                             <Box flex={1} ml={{ xs: 0, sm: '0.5em' }}>
                                 <TextInput
                                     source="phone"
+                                    variant="standard"
                                     label="电话"
                                     isRequired />
                             </Box>
                         </Box>
                         <Box display={{ xs: 'block', sm: 'flex' }}>
-                            <TextInput type="email" source="email" fullWidth />
+                            <TextInput type="email"
+                                       source="email"
+                                       variant="standard"
+                                       fullWidth />
                         </Box>
 
                         <Typography variant="h6" gutterBottom>
@@ -367,33 +383,49 @@ const OrderCreate = () => {
                             source="address"
                             multiline
                             fullWidth
+                            variant="standard"
                             helperText={false}
                         />
-                        <Box display={{ xs: 'block', sm: 'flex' }}>
-                            <Box flex={2} mr={{ xs: 0, sm: '0.5em' }}>
-                                <TextInput source="city" fullWidth helperText={false} />
-                            </Box>
-                            <Box flex={1} mr={{ xs: 0, sm: '0.5em' }}>
-                                <TextInput
-                                    source="stateAbbr"
-                                    fullWidth
-                                    helperText={false}
-                                />
-                            </Box>
-                            <Box flex={2}>
-                                <TextInput source="zipcode" fullWidth helperText={false} />
-                            </Box>
-                        </Box>
-                        <RichTextInput source="additional" label="备注" />
-                        <DateInput label="Publication date" source="published_date" defaultValue={new Date()} />
+                        <Typography variant="h6"
+                                    sx={{marginTop: '20px'}}
+                                    gutterBottom>
+                            Notes
+                        </Typography>
+                        <TextInput source="additional"
+                                       sx={{marginTop: '20px'}}
+                                       variant="outlined"
+                                        fullWidth
+                                        multiline
+                                        rows={4}
+                                       label="备注" />
+                        <DateInput label="Publication date"
+                                   variant="standard"
+                                   source="published_date"
+                                   defaultValue={new Date()} />
                     </Box>
-                    <Divider textAlign="center" sx={{margin: '10px 0'}}>房间添加</Divider>
+                    <Divider textAlign="center" sx={{margin: '10px 0 50px 0'}}>房间添加</Divider>
                     <RoomSelectBox />
                 </Box>
                 <Box className="order-create-aside"></Box>
             </SimpleForm>
         </Create>
+        // </Dialog>
     );
+}
+const CreateActions = () => {
+    return (
+        <TopToolbar>
+            {/*<ShowButton />*/}
+            <ListButton />
+        </TopToolbar>
+    )};
+
+const CreateToolBar = () => {
+    return (
+        <Toolbar>
+            <SaveButton alwaysEnable type="submit" />
+        </Toolbar>
+    )
 }
 export default OrderCreate;
 

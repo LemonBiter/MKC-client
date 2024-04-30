@@ -7,7 +7,7 @@
 
 }
 
-.order-create-simple-form-wrap > :first-child {
+.order-create-simple-form-wrap > :first-of-type {
     display: flex;
     flex-direction: row;
     padding-bottom: 50px;
@@ -18,7 +18,7 @@
     /*width: 100%;*/
     /*display: flex;*/
     /*flex-direction: column;*/
-    flex: 2.5;
+    flex: 1.5;
 }
 
 .order-create-aside {
@@ -30,10 +30,11 @@
 }
 .order-create-form-box-item.layer-1 {
     /*border-bottom: 1px solid lightgray;*/
+    width: 75%;
 }
 
 .order-create-form-box-item.layer-2 {
-
+    width: 100%;
 
 }
 .room-box {
@@ -44,10 +45,12 @@
     min-height: 32rem;
 }
 .room-card {
+    background: #dfe6e9 !important;
+
     margin: 20px 0;
     min-height: 12rem;
     height: auto;
-    border-radius: 0;
+    border-radius: 10px!important;
     border-bottom: 1px solid lightgray;
     overflow: unset!important;
     padding-bottom: 10px;
@@ -100,46 +103,103 @@
     padding: 0 30px 0 5px;
 }
 
-.room-card .bottom .material-item {
-    background: rgb(237, 247, 237);
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    /*border-radius: 5px;*/
-}
+/*.room-card .bottom .material-item {*/
+/*    background: rgb(237, 247, 237);*/
+/*    border-radius: 6px;*/
+/*    display: flex;*/
+/*    justify-content: space-evenly;*/
+/*    align-items: center;*/
+/*}*/
 
-.room-card .bottom .material-item .detail {
+.room-card .bottom .material-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: rgb(30, 70, 32);
 }
 
-.room-card .bottom .material-item  img {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-}
 
 .room-card .bottom .accessory-item {
-    background: rgb(238, 245, 255);
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    /*border-radius: 5px;*/
-}
-
-.room-card .bottom .accessory-item .detail {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: rgb(30, 70, 32);
 }
 
-.room-card .bottom .accessory-item  img {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
+
+
+.stage-ball {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border-radius: 50%;
+}
+
+.stage-ball.ordered {
+    background: #ff9a9e;
+}
+
+.stage-ball.preparing {
+    background: #fee140;
+}
+
+.stage-ball.delivered {
+    background: #a1c4fd;
+}
+
+.stage-ball.assembling {
+    background: #1abc9c;
+}
+
+.stage-ball.completed {
+    background: #bdc3c7;
+}
+
+
+
+.order-show-status-ball {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    right: -30px;
+    bottom: 6px;
+    border-radius: 50%;
+    background: black;
+}
+
+.order-show-status-ball.ordered {
+    background: #ff9a9e;
+}
+
+.order-show-status-ball.preparing {
+    background: #fee140;
+}
+
+.order-show-status-ball.delivered {
+    background: #a1c4fd;
+}
+
+.order-show-status-ball.assembling {
+    background: #1abc9c;
+}
+
+.order-show-status-ball.completed {
+    background: #bdc3c7;
+}
+
+
+.order-show-note-area {
+
+}
+
+.order-show-note-area .content-area {
+    width: 100%;
+    background-color: rgb(237, 243, 240);
+    padding: 10px 20px;
+    color: rgba(0, 0, 0, 0.87);
+    border-radius: 10px;
+    display: flex;
+    -webkit-box-align: stretch;
+    align-items: stretch;
+    margin-bottom: 8px;
 }
