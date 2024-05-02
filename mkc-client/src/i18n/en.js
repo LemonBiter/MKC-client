@@ -47,6 +47,9 @@ const customEnglishMessages = {
         },
     },
     resources: {
+        message: {
+            name: 'Message'
+        },
         order: {
             name: 'Orders',
             tabs: {

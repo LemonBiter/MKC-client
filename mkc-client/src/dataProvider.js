@@ -72,6 +72,22 @@ export const dataProvider = {
             }
         });
     },
+    getImg: (resource, params) => {
+        const url = `${apiUrl}/${resource}/get_img/${params.id}`
+        return request.get(url, params).then((resp) => {
+            return   {
+                data: resp.data.data,
+            }
+        });
+    },
+    getUnconfirmedMessage: (resource, params) => {
+        const url = `${apiUrl}/${resource}/get_unconfirmed_message`
+        return request.get(url, params).then((resp) => {
+            return   {
+                data: resp.data.data,
+            }
+        });
+    },
 
 
     getMany: (resource, params) => {

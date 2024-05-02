@@ -4,7 +4,8 @@ import {
     Datagrid,
     DatagridConfigurable,
     DateField,
-    DateInput, EditButton,
+    DateInput,
+    EditButton,
     CreateButton,
     ExportButton,
     FilterButton,
@@ -16,14 +17,24 @@ import {
     TextField,
     TextInput,
     TopToolbar,
-    useListContext, useTranslate, ImageField, RecordContextProvider, useCreatePath, useRecordContext, SelectField,
+    useListContext,
+    useTranslate,
+    ImageField,
+    RecordContextProvider,
+    useCreatePath,
+    useRecordContext,
+    SelectField,
 } from 'react-admin';
 import 'react-medium-image-zoom/dist/styles.css'
-import {Box, Paper, Typography,  Link as MuiLink } from "@mui/material";
+import {Button, Box, Paper, Typography, Link as MuiLink, Dialog, DialogTitle, DialogActions, DialogContent} from "@mui/material";
 import { Link } from 'react-router-dom';
 import Zoom from "react-medium-image-zoom";
 import '../../css/index.css'
-import {useState} from "react";
+import {useCallback, useEffect, useState} from "react";
+import {dataProvider} from "../../dataProvider";
+import generateShortId from "ssid";
+import {useDispatch, useSelector} from "react-redux";
+import {update} from "../../app/message";
 
 const ListActions = () => (
     <TopToolbar>
@@ -52,8 +63,7 @@ const orderFilters = [
     <NullableBooleanInput source="returned" />,
 ];
 
-const MaterialList = (props) => {
-    const [imgSrc, setImgSrc] = useState('');
+const MaterialList = () => {
     return (
         <List
             hasCreate={true}
@@ -63,20 +73,6 @@ const MaterialList = (props) => {
             actions={<ListActions />}
         >
             <ImageList />
-            {/*<DatagridConfigurable*/}
-            {/*    className="list-header"*/}
-            {/*    size="medium"*/}
-            {/*>*/}
-            {/*    <TextField className="text-field" source="index" label="Index" />*/}
-            {/*    <Box className="image-box" label='image'>*/}
-            {/*        <Zoom>*/}
-            {/*            <ImageField*/}
-            {/*                source="base64" />*/}
-            {/*        </Zoom>*/}
-            {/*    </Box>*/}
-            {/*    <TextField className="text-field" source="detail" label="detail" />*/}
-            {/*    <EditButton />*/}
-            {/*</DatagridConfigurable>*/}
         </List>
     )};
 
@@ -102,9 +98,7 @@ const LoadingGridList = () => (
 
 const LoadedGridList = () => {
     const { data, isLoading } = useListContext();
-
     if (isLoading) return null;
-
     return (
         <Box display="flex" flexWrap="wrap" width="100%" gap={1}>
             {data.map(record => (
@@ -118,9 +112,29 @@ const LoadedGridList = () => {
 
 export const MaterialItem = (props) => {
     const [elevation, setElevation] = useState(1);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [imgUrl, setImgUrl] = useState('');
     const createPath = useCreatePath();
     const record = useRecordContext(props);
     if (!record) return null;
+    const fetchImgUrl = useCallback(async () => {
+        const { data } = await dataProvider.getImg('material', { id: record.id });
+        setImgUrl(data);
+    }, []);
+
+    useEffect(() => {
+        fetchImgUrl();
+    }, []);
+
+
+
+    const handleSupply = (e) => {
+        e.preventDefault();
+        setOpenDialog(true);
+    };
+    const handleCloseDialog = (e) => {
+        setOpenDialog(false);
+    };
     return (
         <MuiLink
             component={Link}
@@ -151,9 +165,9 @@ export const MaterialItem = (props) => {
                         </Typography>
                     </Box>
                 </Box>
-                {record?.base64 ? (
+                {imgUrl ? (
                 <Box display="flex" flexDirection="column" alignItems="center" className="material-list-img-display">
-                    <img src={record.base64} alt='img' />
+                    <img src={imgUrl} alt='img' />
                 </Box>
                 ) : null}
                 <Box display="flex" justifyContent="center" width="100%"  marginTop={1}>
@@ -161,10 +175,50 @@ export const MaterialItem = (props) => {
                             {record.detail}
                         </Typography>
                 </Box>
+                <Button variant="text"
+                        mt={2}
+                        onClick={handleSupply}>补货申请</Button>
+                <SupplyDialog open={openDialog} info={{id: record.id, detail: record.detail}} handleCloseDialog={handleCloseDialog} />
             </Paper>
         </MuiLink>
     );
 };
+
+const SupplyDialog = ({ open, info, handleCloseDialog }) => {
+    const dispatch = useDispatch();
+    const { id, detail } = info;
+    const handleClick = (e) => {
+        e.preventDefault();
+    }
+    const handleDialogClose = (e, reason) => {
+        console.log(reason)
+    }
+    const handleDisagree = () => {
+        handleCloseDialog();
+    }
+
+    const handleAgree = async () => {
+        const messageId = generateShortId();
+        const res = await dataProvider.create('message', { title: 'supply', id: messageId ,detail});
+        console.log(res);
+        if (res?.success) {
+            dispatch(update());
+            handleCloseDialog();
+        }
+    }
+    return (<Dialog open={open} onClick={handleClick} onClose={handleDialogClose} >
+        <DialogTitle id="alert-dialog-title">
+            确认提交 ({detail}) 的补货申请?
+        </DialogTitle>
+        <DialogContent>
+            提交后申请将被等待确认
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleDisagree}>取消</Button>
+            <Button onClick={handleAgree}>提交</Button>
+        </DialogActions>
+    </Dialog>)
+}
 
 const ImageList = () => {
     const { isLoading } = useListContext();

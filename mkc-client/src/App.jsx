@@ -38,7 +38,8 @@ import material from "./components/material";
 import MaterialList from "./components/material/materialList";
 import accessory from "./components/accessory";
 import OrderEdit from "./components/orders/OrderEdit"
-// import { BrowserRouter } from 'react-router-dom';
+import MessageShow from "./components/message/messageShow";
+import {useSelector} from "react-redux";
 
 
 export const App = () => {
@@ -51,11 +52,19 @@ export const App = () => {
                  authProvider={authProvider}
                  dashboard={Dashboard}>
               <Title title="Modern Kitchens Cabinets Admin"/>
+              <CustomRoutes>
+                  <Route path="/message" element={<MessageShow />} />
+              </CustomRoutes>
+              <Resource
+                  name="message"
+                  show={<MessageShow />}
+                   />
               <Resource
                   name="order"
                   {...orders} />
               <Resource
                   {...material}
+                  list={<MaterialList  />}
                   options={{label: 'Material'}}
                   name="material" />
               <Resource

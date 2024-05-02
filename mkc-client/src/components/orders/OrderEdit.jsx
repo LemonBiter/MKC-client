@@ -14,7 +14,6 @@ import {
     PasswordInput,
     ReferenceArrayInput,
     NumberInput,
-    TextField,
     useRecordContext, Edit, ShowButton, TopToolbar, ListButton, useListContext, useRefresh, SaveButton, DeleteButton,
 } from 'react-admin';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,12 +24,13 @@ import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Divider, Grid, TextField as NoteInput, Typography, Button} from "@mui/material";
+import {Box, Card, Divider, Grid, TextField, Typography, Button} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
 import {decrement, increment, removedSelection, update} from '../../app/order'
 import _ from "lodash";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import OrderAside from "./OrderAside";
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -47,25 +47,28 @@ const roomOptions = [
 
 const MaterialItem = ({ room, m, index }) => {
     const [materialDetail, setMaterialDetail] = useState({});
+    const [countDisplay, setCountDisplay] = useState(1);
     const dispatch = useDispatch();
+
     useEffect(() => {
-        dispatch(update({
-            id: m.value,
+        setMaterialDetail({
+            id: m?.value,
             position: m.position,
-            label: m.label,
+            label: m?.label,
             room: room.value,
-            count: 1,
+            count: parseInt(m?.count) || 1,
             type: 'material'
-        }))
+        })
+        setCountDisplay(parseInt(m?.count) || 1);
     }, [1]);
 
     useEffect(() => {
         dispatch(update(materialDetail));
     }, [materialDetail]);
 
-
     const handleCountChange = (event) => {
-        setMaterialDetail({id: m.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'material' });
+        setCountDisplay(event.target.value);
+        setMaterialDetail({id: m?.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'material' });
     }
 
     return (
@@ -80,7 +83,7 @@ const MaterialItem = ({ room, m, index }) => {
                 type="number"
                 variant="standard"
                 label="数量"
-                defaultValue={1}
+                value={countDisplay}
                 min={1}
                 sx={{ width: '100px' }}
                 onChange={(value) => handleCountChange(value)}
@@ -97,16 +100,19 @@ const MaterialItem = ({ room, m, index }) => {
 
 const AccessoryItem = ({ room, m, index }) => {
     const [accessoryDetail, setAccessoryDetail] = useState({});
+    const [countDisplay, setCountDisplay] = useState(1);
     const dispatch = useDispatch();
+
     useEffect(() => {
-        dispatch(update({
-            id: m.value,
+        setAccessoryDetail({
+            id: m?.value,
             position: m.position,
-            label: m.label,
+            label: m?.label,
             room: room.value,
-            count: 1,
+            count: parseInt(m?.count) || 1,
             type: 'accessory'
-        }))
+        })
+        setCountDisplay(parseInt(m?.count) || 1);
     }, [1]);
 
     useEffect(() => {
@@ -114,7 +120,8 @@ const AccessoryItem = ({ room, m, index }) => {
     }, [accessoryDetail]);
 
     const handleCountChange = (event) => {
-        setAccessoryDetail({id: m.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'accessory' });
+        setCountDisplay(event.target.value);
+        setAccessoryDetail({id: m?.value, position: m.position, label: m.label, room: room.value, count: event.target.value, type: 'accessory' });
     }
 
     return (
@@ -129,7 +136,7 @@ const AccessoryItem = ({ room, m, index }) => {
                 type="number"
                 variant="standard"
                 label="数量"
-                defaultValue={1}
+                value={countDisplay}
                 min={1}
                 sx={{ width: '100px' }}
                 onChange={(value) => handleCountChange(value)}
@@ -143,10 +150,10 @@ const AccessoryItem = ({ room, m, index }) => {
         </Box>
     )
 }
-const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) => {
+const RoomCard = ({ roomInfo, materialList, accessoryList, onRoomDelete, room, index }) => {
     const [selectedMaterial, setSelectedMaterial] = useState([]);
     const [selectedAccessory, setSelectedAccessory] = useState([]);
-    const roomInfo = useSelector((state) => state.order.value);
+    // const roomInfo = useSelector((state) => state.order.value);
     const dispatch = useDispatch();
     const materialListOptions = materialList.map(material => {
         return { value: material.id, label: material.detail, position: material?.position, fileExist: material.fileExist }
@@ -156,23 +163,42 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
     })
 
     useEffect(() => {
-        console.log('roomInfo:', roomInfo);
+        const material = roomInfo?.material;
+        const accessory = roomInfo?.accessory;
+        if (material) {
+            const idArr = Object.keys(material);
+            const previousMaterialArr = idArr.reduce((pre, cur, index, arr) => {
+                pre.push({ value: cur, label: material[cur]?.label, position: material[cur]?.position, count: material[cur]?.count });
+                return pre;
+            }, []);
+            handleUpdateMaterial(previousMaterialArr);
+        }
+        if (accessory) {
+            const idArr = Object.keys(accessory);
+            const previousAccessoryArr = idArr.reduce((pre, cur, index, arr) => {
+                pre.push({ value: cur, label: accessory[cur]?.label, position: accessory[cur]?.position, count: accessory[cur]?.count });
+                return pre;
+            }, []);
+            console.log('previousAccessoryArr: ', previousAccessoryArr);
+            handleUpdateAccessory(previousAccessoryArr);
+        }
     }, [roomInfo]);
 
     const handleUpdateMaterial = (value, actionMeta) => {
-        if (actionMeta.removedValue) {
+        if (actionMeta?.removedValue) {
             const removed = actionMeta?.removedValue?.value
             dispatch(removedSelection({ id: removed, room: room.value, type: 'material' }))
         }
-        setSelectedMaterial(value)
+        setSelectedMaterial(value);
     }
 
     const handleUpdateAccessory = (value, actionMeta) => {
-        if (actionMeta.removedValue) {
+        if (actionMeta?.removedValue) {
             const removed = actionMeta?.removedValue?.value
             dispatch(removedSelection({ id: removed, room: room.value, type: 'accessory' }))
         }
-        setSelectedAccessory(value)
+        console.log('value:', value);
+        setSelectedAccessory(value);
     }
 
     return (
@@ -181,8 +207,8 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
             className="room-card">
             <Box position="relative">
                 <Divider textAlign="left" sx={{margin: '30px 0 10px 0'}}><h2>{room.label}</h2></Divider>
-                <CloseIcon sx={{position:"absolute", top: '10px', right: '20px', cursor: 'pointer'}}
-                           onClick={() => removeRoom(room.value)} className="close" />
+                {/*<CloseIcon sx={{position:"absolute", top: '10px', right: '20px', cursor: 'pointer'}}*/}
+                {/*           onClick={() => removeRoom(room.value)} className="close" />*/}
             </Box>
 
             <Box className="top">
@@ -191,6 +217,7 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
                 <Box className="middle-1">
                     <CreatableSelect
                         className="material-select"
+                        value={selectedMaterial}
                         onChange={(value, actionMeta) => handleUpdateMaterial(value, actionMeta)}
                         options={materialListOptions}
                         isMulti
@@ -202,6 +229,7 @@ const RoomCard = ({ materialList, accessoryList, onRoomDelete, room, index }) =>
                 <Box className="middle-2">
                     <CreatableSelect
                         className="material-select"
+                        value={selectedAccessory}
                         onChange={(value, actionMeta) => handleUpdateAccessory(value, actionMeta)}
                         options={accessoryListOptions}
                         isMulti
@@ -256,11 +284,13 @@ const RoomSelectBox = () => {
         fetchAccessoryList();
 
     }, []);
-    // const handleRoomDelete = (value) => {
-    //     const roomSet = selectedRoom.filter(room => room.value !== value);
-    //     setSelectedRoom(roomSet);
-    // }
-
+    const { roomInfo } = useRecordContext();
+    useEffect(() => {
+        const rooms = Object.keys(roomInfo).map((room) => {
+            return { value: room, label: room }
+        });
+        handleRoomUpdate(rooms)
+    }, [roomInfo]);
     const handleHeightIncrease = () => {
         const roomBoxEl = document.getElementsByClassName('room-box')[0];
         roomBoxEl.classList.add('room-box-on-click');
@@ -272,7 +302,7 @@ const RoomSelectBox = () => {
     }
 
     const handleRoomUpdate = (values, actionMeta) => {
-        if (actionMeta.removedValue) {
+        if (actionMeta?.removedValue) {
             const removed = actionMeta?.removedValue?.value
             dispatch(removedSelection({ room: removed }))
         }
@@ -282,7 +312,7 @@ const RoomSelectBox = () => {
     return <Box className="order-create-form-box-item layer-2">
         {loading ? 'loading...' : <CreatableSelect onMenuOpen={handleHeightIncrease}
                                                    onMenuClose={handleHeightDecrease}
-            // value={selectedRoom}
+                                                   value={selectedRoom}
                                                    onChange={(values,actionMeta) => handleRoomUpdate(values, actionMeta)}
                                                    options={roomOptions}
                                                    isMulti
@@ -292,8 +322,8 @@ const RoomSelectBox = () => {
                 return <RoomCard
                     materialList={materialList}
                     accessoryList={accessoryList}
-                    // onRoomDelete={handleRoomDelete}
                     key={room.value}
+                    roomInfo={roomInfo[room.value]}
                     index={index}
                     room={room} />
             })}
@@ -323,6 +353,11 @@ const OrderEdit = () => {
     const [materialList, setMaterialList] = useState([]);
     const [accessoryList, setAccessoryList] = useState([]);
     const roomInfo = useSelector((state) => state.order.value)
+    const [roomInfoDetail, setRoomInfoDetail] = useState({});
+
+    useEffect(() => {
+        setRoomInfoDetail(roomInfo)
+    }, [roomInfo]);
     useEffect(() => {
         const fetchMaterialList = async () => {
             const { data } = await dataProvider.getListWithoutFile('material');
@@ -340,10 +375,6 @@ const OrderEdit = () => {
     const handleSave = async (values) => {
         try {
             if (values) {
-                // const id = generateShortId()
-                // Object.defineProperty(values, 'type', { value: 'ordered', enumerable: true })
-                // Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
-                // Object.defineProperty(values, 'from', { value: 'edit_page', enumerable: true })
                 Object.defineProperty(values, 'roomInfo', { value: roomInfo, enumerable: true });
                 const jsonData = JSON.stringify(values);
                 const res = await dataProvider.update('order', values,'?from=edit_page');
@@ -360,7 +391,7 @@ const OrderEdit = () => {
 
     }
     return (
-        <Edit actions={<EditActions />}>
+        <Edit aside={<OrderAside roomInfo={roomInfoDetail} />} actions={<EditActions />}>
             <SimpleForm className="order-create-simple-form-wrap"
                         toolbar={<EditToolbar />}
                         warnWhenUnsavedChanges
@@ -462,7 +493,7 @@ const  NotesIterator = () => {
     }
     return (
         <Box>
-            <NoteInput fullWidth
+            <TextField fullWidth
                        rows={2}
                        multiline
                        value={currentNote}
@@ -484,7 +515,7 @@ const NoteArea = () => {
     const record = useRecordContext();
     const refresh = useRefresh();
     if (!record || !record?.additional) return;
-    const handleDeleteNote = async (note) => {
+    const handleDeleteNote = async (note)=> {
         if (!record.id || !note.noteId) return;
         const res = await dataProvider.delete('order', { id: record.id, noteId: note.noteId });
         if (res?.success) {

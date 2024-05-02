@@ -4,8 +4,6 @@ import { calculateCount } from '../utils';
 const OrderAside = ({roomInfo}) => {
     // const roomInfo = useSelector((state) => state.order.value)
     const { mArr, aArr } = calculateCount(roomInfo);
-    console.log(mArr);
-    console.log(aArr);
 
     if (!mArr.length && !aArr.length) {
         return null;

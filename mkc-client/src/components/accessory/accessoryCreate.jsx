@@ -6,6 +6,7 @@ import {
     TextInput,
     DateInput,
     AutocompleteInput,
+    NumberInput,
     required,
     useNotify,
     useRedirect,
@@ -44,7 +45,9 @@ const AccessoryCreate = () => {
             if (values) {
                 const id = generateShortId()
                 Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
-                Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                if (displayImg) {
+                    Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                }
                 const jsonData = JSON.stringify(values);
                 const res = await dataProvider.create('accessory', values);
                 if (res.success) {
@@ -55,9 +58,8 @@ const AccessoryCreate = () => {
                 notify('创建失败，使用了无效字段');
             }
         } catch (e) {
-
+            console.log(e);
         }
-
     }
     const handleImgUpload = async () => {
         const input = document.createElement('input');
@@ -71,13 +73,12 @@ const AccessoryCreate = () => {
                 setDisplayImg(e.target.result)
             })
         })
-
     }
     return (
         <Create>
             <SimpleForm className="simple-form-wrap" onSubmit={handleSave}>
                 <Typography variant="h6" gutterBottom>
-                    配件详情
+                    物料详情
                 </Typography>
                 <Box className="form-box-wrap">
                     <Box className="form-box-item left" >
@@ -97,12 +98,21 @@ const AccessoryCreate = () => {
 
                     </Box>
                     <Box className="form-box-item right" >
-                        <TextInput source="detail"
-                                   validate={[required()]}
-                                   fullWidth
-                                   multiline
-                                   label="配件详情"
-                                   isRequired />
+                        <Box flex>
+                            <TextInput source="detail"
+                                       variant="filled"
+                                       validate={[required()]}
+                                       fullWidth
+                                       multiline
+                                       label="物料名称"
+                                       isRequired />
+                            <TextInput source="position"
+                                       variant="filled"
+                                       sx={{marginRight: '10px'}}
+                                       validate={[required()]}
+                                       label="摆放位置" />
+                        </Box>
+
                     </Box>
                 </Box>
             </SimpleForm>

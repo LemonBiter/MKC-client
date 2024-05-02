@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import Box from '@mui/material/Box';
 import LabelIcon from '@mui/icons-material/Label';
+import MessageIcon from '@mui/icons-material/Message';
 
 import {
     useTranslate,
@@ -17,8 +18,19 @@ import products from '../../products';
 import categories from '../../categories';
 import reviews from '../../reviews';
 import SubMenu from './SubMenu';
+import {dataProvider} from "../../dataProvider";
 
 const Menu = ({ dense = false }) => {
+    const [unconfirmedMessage, setUnconfirmedMessage] = useState(0)
+    const fetchUnconfirmedMessage = useCallback(async() => {
+        const { data } = await dataProvider.getUnconfirmedMessage('message');
+        setUnconfirmedMessage(parseInt(data));
+    }, []);
+
+    useEffect(() => {
+        setInterval(fetchUnconfirmedMessage, 5000);
+    }, [fetchUnconfirmedMessage]);
+
     const [state, setState] = useState({
         menuCatalog: true,
         menuSales: true,
@@ -26,7 +38,6 @@ const Menu = ({ dense = false }) => {
     });
     const translate = useTranslate();
     const [open] = useSidebarState();
-
     const handleToggle = (menu) => {
         setState(state => ({ ...state, [menu]: !state[menu] }));
     };
@@ -45,6 +56,16 @@ const Menu = ({ dense = false }) => {
             }}
         >
             <DashboardMenuItem />
+            <MenuItemLink
+                to="/message"
+                state={{ _scrollToTop: true }}
+                // primaryText={ + unconfirmedMessage}
+                leftIcon={<MessageIcon />}
+                dense={dense}
+            >
+
+                {unconfirmedMessage ? <span style={{color: 'red'}}>未读消息：({unconfirmedMessage})</span> : `${translate(`resources.message.name`, { smart_count: 2 })}`}
+            </MenuItemLink>
             <MenuItemLink
                 to="/order"
                 state={{ _scrollToTop: true }}

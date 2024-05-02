@@ -1,9 +1,11 @@
 import { LoadingIndicator, LocalesMenuButton } from 'react-admin';
 import { ThemeSwapper } from '../../themes/ThemeSwapper';
-import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
+
+import {Box, Dialog} from "@mui/material";
+import MessagePanel from "../message";
 export const AppBarToolbar = () => (
     <>
-        {/*<MarkEmailUnreadIcon />*/}
+        {/*<MessagePanel />*/}
         <LocalesMenuButton />
         <ThemeSwapper />
         <LoadingIndicator />

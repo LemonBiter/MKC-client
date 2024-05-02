@@ -47,6 +47,9 @@ const customChineseMessages = {
         },
     },
     resources: {
+        message: {
+          name: '消息中心'
+        },
         order: {
             name: '订单',
             tabs: {

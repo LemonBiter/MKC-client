@@ -145,8 +145,7 @@ const MaterialEdit = (props) => {
                                        variant="filled"
                                        sx={{marginRight: '10px'}}
                                        validate={[required()]}
-                                       label="摆放位置"
-                                       isRequired />
+                                       label="摆放位置" />
                         </Box>
 
                     </Box>
