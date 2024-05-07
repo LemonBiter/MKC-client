@@ -27,7 +27,7 @@ import {Fragment, useEffect, useState} from "react";
 import {Box, Card, Divider, Grid, TextField, Typography, Button} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
-import {decrement, increment, removedSelection, update} from '../../app/order'
+import {cleanAll, decrement, increment, removedSelection, update} from '../../app/order'
 import _ from "lodash";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import OrderAside from "./OrderAside";
@@ -348,6 +348,7 @@ const EditActions = () => {
 const OrderEdit = () => {
     const notify = useNotify();
     const redirect = useRedirect();
+    const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState([]);
     const [materialList, setMaterialList] = useState([]);
@@ -356,8 +357,16 @@ const OrderEdit = () => {
     const [roomInfoDetail, setRoomInfoDetail] = useState({});
 
     useEffect(() => {
+        console.log('edit:', roomInfo);
+        if (roomInfo && Object.keys(roomInfo)?.length) {
+            dispatch(cleanAll());
+        }
+    }, [1]);
+
+    useEffect(() => {
         setRoomInfoDetail(roomInfo)
     }, [roomInfo]);
+
     useEffect(() => {
         const fetchMaterialList = async () => {
             const { data } = await dataProvider.getListWithoutFile('material');

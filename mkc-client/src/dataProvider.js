@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-const apiUrl = "http://54.252.241.230:3000";
-
+// const apiUrl="http://13.236.86.158:3000";
+// const apiUrl = "http://54.252.241.230:3000";
+const apiUrl = "http://localhost:3000";
 const request = axios.create({
     baseURL: apiUrl,
-    timeout: 25 * 1000,
+    timeout: 50 * 1000,
     headers: {
         'Content-Type': 'application/json',
     }
@@ -124,10 +125,6 @@ export const dataProvider = {
             }
         });
     },
-        // httpClient(`${apiUrl}/${resource}/${params.id}`, {
-        //     method: 'PUT',
-        //     body: JSON.stringify(params.data),
-        // }).then(({ json }) => ({ data: json })),
 
     updateMany: (resource, params) => {
         const query = {
@@ -170,8 +167,5 @@ export const dataProvider = {
                 success: resp.data.success,
             }
         });
-        // return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
-        //     method: 'DELETE',
-        // }).then(({ json }) => ({ data: json }));
     }
 };

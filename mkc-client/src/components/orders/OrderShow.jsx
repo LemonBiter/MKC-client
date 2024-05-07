@@ -8,12 +8,16 @@ import {
     useRecordContext,
     useRedirect, DateField, RichTextField, SimpleShowLayout, Show, useListContext, useNotify, useRefresh,
 } from 'react-admin';
+// import { Controlled as ControlledZoom } from "react-medium-image-zoom";
 import { calculateCount } from '../utils';
 import { Box, Dialog, DialogContent, Typography, Divider, TextField as NoteInput, Button } from '@mui/material';
+import BorderColorIcon from '@mui/icons-material/BorderColor';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import CollectionsIcon from '@mui/icons-material/Collections';
+import ImageViewer from 'react-simple-image-viewer';
 import '../../css/order.css'
 
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {dataProvider} from "../../dataProvider";
 
 const OrderShow = ({ open, id}) => {
@@ -123,15 +127,7 @@ const OrderShowContent = () => {
                     </Box>
                     <Box mt={6} mb={2} style={{ whiteSpace: 'pre-line' }}>
                         {record.additional ? record.additional.map((note, index) => (
-                            <Box className="order-show-note-area" key={index}>
-                                <Typography sx={{color: 'rgba(0, 0, 0, 0.6)'}} mb={2}>{new Date(note.noteTime).toLocaleString()}</Typography>
-                                <Box display="flex">
-                                    <Box className="content-area">
-                                        <Typography>{note.value}</Typography>
-                                    </Box>
-                                    <DeleteForeverIcon onClick={() => handleDeleteNote(note)} sx={{cursor:'pointer', marginLeft: '10px'}} />
-                                </Box>
-                            </Box>
+                            <NoteList key={note?.noteId} note={note} handleDeleteNote={handleDeleteNote} />
                         )) : null}
                     </Box>
                     <Box mt={6}>
@@ -213,14 +209,29 @@ const  NotesIterator = () => {
     const refresh = useRefresh()
     const [currentNote, setCurrentNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [imgUrl, setImgUrl] = useState('');
+        useEffect(() => {
+            if (imgUrl) {
+                const uploadImgNote = async () => {
+                    const result = await dataProvider.update('order', {
+                        id: record.id,
+                        base64: imgUrl,
+                        type: 'img',
+                    }, '?from=update_note');
+                    return result;
+                }
+                uploadImgNote();
+
+            }
+    }, [imgUrl]);
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
             if (!record?.id) return;
-
             const result = await dataProvider.update('order', {
                 id: record.id,
-                newNote: currentNote
+                newNote: currentNote,
+                type: 'text',
             }, '?from=update_note');
             if (result.success) {
                 setCurrentNote('');
@@ -234,6 +245,19 @@ const  NotesIterator = () => {
             notify('增加备注失败');
         }
 
+    }
+    const handleImgUpload = async (event) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.click();
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.addEventListener('load', (e) => {
+                setImgUrl(e.target.result);
+            })
+        })
     }
     const handleChange = (event) => {
         event.preventDefault();
@@ -250,12 +274,61 @@ const  NotesIterator = () => {
                        label="add new note" />
             <Button
                 sx={{float: 'right'}}
+                onClick={handleImgUpload}
+                color="primary"
+            >
+                <CollectionsIcon />
+                上传图片
+            </Button>
+            <Button
+                sx={{float: 'right'}}
                 type="submit"
                 color="primary"
                 disabled={!currentNote || isLoading}
             >
-                Add this note
+                <BorderColorIcon />
+                上传备注
             </Button>
         </form>
+    )
+}
+
+const NoteList = ({ note, handleDeleteNote }) => {
+    // const [imgList, setImgList] = useState([note?.value]);
+    const [currentImage, setCurrentImage] = useState(0);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const openImageViewer = useCallback((index) => {
+        setCurrentImage(index);
+        setIsViewerOpen(true);
+    }, []);
+    const closeImageViewer = () => {
+        setCurrentImage(0);
+        setIsViewerOpen(false);
+    };
+
+    return (
+        <Box className="order-show-note-area">
+        <Typography sx={{color: 'rgba(0, 0, 0, 0.6)'}} mb={2}>{new Date(note.noteTime).toLocaleString()}</Typography>
+        <Box display="flex">
+            {note.type ==='img'
+                ? <Box className="img-area">
+                    <img alt='' src={note.value} onClick={() => openImageViewer(0)} />
+                </Box>
+                : <Box className="content-area">
+                    <Typography>{note.value}</Typography>
+                </Box>
+            }
+            <DeleteForeverIcon onClick={() => handleDeleteNote(note)} sx={{cursor:'pointer', marginLeft: '10px'}} />
+        </Box>
+            {isViewerOpen && (
+                <ImageViewer
+                    src={ imgList }
+                    currentIndex={ currentImage }
+                    disableScroll={ false }
+                    closeOnClickOutside={ true }
+                    onClose={ closeImageViewer }
+                />
+            )}
+    </Box>
     )
 }

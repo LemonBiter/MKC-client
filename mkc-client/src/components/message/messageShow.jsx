@@ -1,5 +1,5 @@
 import {Box, Card, Typography, Button} from "@mui/material";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {dataProvider} from "../../dataProvider";
 import {useNotify, useRefresh} from "react-admin";
 import generateShortId from "ssid";
@@ -8,16 +8,17 @@ import { update } from '../../app/message'
 
 const MessageShow = () => {
     const [messages, setMessages] = useState([]);
+    const fetchMessageList = useCallback(async () => {
+        const { data } = await dataProvider.getList('message');
+        setMessages(data);
+    }, []);
+
     useEffect(() => {
-        const fetchMessage = async () => {
-            const { data } = await dataProvider.getList('message');
-            setMessages(data);
-        };
-        fetchMessage();
+        fetchMessageList();
     }, [1]);
 
     const handleRefresh = () => {
-        window.location.reload();
+        fetchMessageList();
     }
 
     return (

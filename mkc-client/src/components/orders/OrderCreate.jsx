@@ -26,7 +26,7 @@ import {Fragment, useEffect, useState} from "react";
 import {Box, Card, Divider, Grid, Typography, Dialog, TextField} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
-import { removedSelection, update } from '../../app/order'
+import { removedSelection, cleanAll, update } from '../../app/order'
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -299,13 +299,16 @@ const RoomSelectBox = () => {
 const OrderCreate = () => {
     const notify = useNotify();
     const redirect = useRedirect();
+    const dispatch = useDispatch();
     const record = useRecordContext();
     const [loading, setLoading] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState([]);
     const [materialList, setMaterialList] = useState([]);
     const [accessoryList, setAccessoryList] = useState([]);
     const roomInfo = useSelector((state) => state.order.value)
+
     useEffect(() => {
+
         const fetchMaterialList = async () => {
             const { data } = await dataProvider.getListWithoutFile('material');
             setMaterialList(data);
@@ -320,6 +323,12 @@ const OrderCreate = () => {
         fetchAccessoryList();
     }, []);
 
+    useEffect(() => {
+        console.log('init:', roomInfo);
+        if (roomInfo && Object.keys(roomInfo)?.length) {
+            dispatch(cleanAll());
+        }
+    }, [1]);
     const handleSave = async (values) => {
         try {
             if (values) {

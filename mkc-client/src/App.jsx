@@ -46,11 +46,11 @@ export const App = () => {
     return (
           <Admin
                 dataProvider={dataProvider}
-                layout={layout}
-                 loginPage={LoginPage}
-                 i18nProvider={i18nProvider}
-                 authProvider={authProvider}
-                 dashboard={Dashboard}>
+                 layout={layout}
+                  loginPage={LoginPage}
+                  i18nProvider={i18nProvider}
+                  authProvider={authProvider}
+                  dashboard={Dashboard}>
               <Title title="Modern Kitchens Cabinets Admin"/>
               <CustomRoutes>
                   <Route path="/message" element={<MessageShow />} />

@@ -18,6 +18,9 @@ export const orderSlice = createSlice({
                 state.value[room][type][id] = { label, count, position };
             }
         },
+        cleanAll: (state, action) => {
+            state.value = {};
+        },
         removedSelection: (state, action) => {
             const { id, room, type } = action.payload;
             if (room) {
@@ -32,6 +35,6 @@ export const orderSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { removedSelection, update, updateOption, increment, decrement, incrementByAmount } = orderSlice.actions
+export const { cleanAll, removedSelection, update, updateOption, increment, decrement, incrementByAmount } = orderSlice.actions
 
 export default orderSlice.reducer
