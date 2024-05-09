@@ -23,7 +23,7 @@ import '../../css/order.css'
 import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useCallback, useEffect, useState} from "react";
 import {Box, Card, Divider, Grid, TextField, Typography, Button} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
@@ -31,6 +31,9 @@ import {cleanAll, decrement, increment, removedSelection, update} from '../../ap
 import _ from "lodash";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import OrderAside from "./OrderAside";
+import CollectionsIcon from "@mui/icons-material/Collections";
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import ImageViewer from "react-simple-image-viewer";
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -357,7 +360,6 @@ const OrderEdit = () => {
     const [roomInfoDetail, setRoomInfoDetail] = useState({});
 
     useEffect(() => {
-        console.log('edit:', roomInfo);
         if (roomInfo && Object.keys(roomInfo)?.length) {
             dispatch(cleanAll());
         }
@@ -473,6 +475,39 @@ const  NotesIterator = () => {
     const refresh = useRefresh()
     const [currentNote, setCurrentNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [imgUrl, setImgUrl] = useState('');
+    useEffect(() => {
+        if (imgUrl) {
+            const uploadImgNote = async () => {
+                const result = await dataProvider.update('order', {
+                    id: record.id,
+                    base64: imgUrl,
+                    type: 'img',
+                }, '?from=update_note');
+                if (result.success) {
+                    notify('增加图片成功');
+                    refresh();
+                } else {
+                    notify('增加图片失败');
+                }
+            }
+            uploadImgNote();
+
+        }
+    }, [imgUrl]);
+    const handleImgUpload = async (event) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.click();
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.addEventListener('load', (e) => {
+                setImgUrl(e.target.result);
+            })
+        })
+    }
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
@@ -480,7 +515,8 @@ const  NotesIterator = () => {
 
             const result = await dataProvider.update('order', {
                 id: record.id,
-                newNote: currentNote
+                newNote: currentNote,
+                type: 'text'
             }, '?from=update_note');
             if (result.success) {
                 setCurrentNote('');
@@ -510,12 +546,21 @@ const  NotesIterator = () => {
                        label="add new note" />
             <Button
                 sx={{float: 'right'}}
+                onClick={handleImgUpload}
+                color="primary"
+            >
+                <CollectionsIcon />
+                上传图片
+            </Button>
+            <Button
+                sx={{float: 'right'}}
                 type="submit"
                 color="primary"
                 onClick={handleSubmit}
                 disabled={!currentNote || isLoading}
             >
-                Add this note
+                <BorderColorIcon />
+                上传备注
             </Button>
         </Box>
     )
@@ -531,21 +576,52 @@ const NoteArea = () => {
             refresh();
         }
     }
-    return (<Fragment>
-        {record.additional.map((note, index) => (
-            <Box className="order-show-note-area" key={index}>
-                <Typography sx={{color: 'rgba(0, 0, 0, 0.6)'}} mb={2}>{new Date(note.noteTime).toLocaleString()}</Typography>
-                <Box display="flex">
-                    <Box className="content-area">
+    return (<Box mt={6}>
+        <Typography mb={3} variant="h6">Note List</Typography>
+        {record.additional ? record.additional.map((note, index) => (
+            <NoteList key={note?.noteId} note={note} handleDeleteNote={handleDeleteNote} />
+        )): null}
+    </Box>)
+};
+
+const NoteList = ({ note, handleDeleteNote }) => {
+    const [imgList, setImgList] = useState([note?.value]);
+    const [currentImage, setCurrentImage] = useState(0);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const openImageViewer = useCallback((index) => {
+        setCurrentImage(index);
+        setIsViewerOpen(true);
+    }, []);
+    const closeImageViewer = () => {
+        setCurrentImage(0);
+        setIsViewerOpen(false);
+    };
+    return (
+        <Box className="order-show-note-area">
+            <Typography sx={{color: 'rgba(0, 0, 0, 0.6)'}} mb={2}>{new Date(note.noteTime).toLocaleString()}</Typography>
+            <Box display="flex">
+                {note.type ==='img'
+                    ? <Box className="img-area">
+                        <img alt='' src={note.value} onClick={() => openImageViewer(0)} />
+                    </Box>
+                    : <Box className="content-area">
                         <Typography>{note.value}</Typography>
                     </Box>
-                    <DeleteForeverIcon onClick={() => handleDeleteNote(note)} sx={{cursor:'pointer', marginLeft: '10px'}} />
-                </Box>
+                }
+                <DeleteForeverIcon onClick={() => handleDeleteNote(note)} sx={{cursor:'pointer', marginLeft: '10px'}} />
             </Box>
-        ))}
-    </Fragment>)
-
-};
+            {isViewerOpen && (
+                <ImageViewer
+                    src={ imgList }
+                    currentIndex={ currentImage }
+                    disableScroll={ false }
+                    closeOnClickOutside={ true }
+                    onClose={ closeImageViewer }
+                />
+            )}
+        </Box>
+    )
+}
 
 export default OrderEdit;
 

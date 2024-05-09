@@ -12,8 +12,10 @@ import {
 import { calculateCount } from '../utils';
 import { Box, Dialog, DialogContent, Typography, Divider, TextField as NoteInput, Button } from '@mui/material';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CollectionsIcon from '@mui/icons-material/Collections';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+
 import ImageViewer from 'react-simple-image-viewer';
 import '../../css/order.css'
 
@@ -71,7 +73,7 @@ const OrderShowContent = () => {
     return (
                 <Box>
                     <Typography variant="h5">{record.name ?? '无'}</Typography>
-                    <Box display="flex" mt={3}>
+                    <Box display="flex" mt={3} sx={{position: 'relative'}}>
                         <Box display="flex" mr={5} flexDirection="column">
                             <Typography color="textSecondary" variant="body2">
                                 电话
@@ -96,7 +98,7 @@ const OrderShowContent = () => {
                                 {localTime ?? '无'}
                             </Typography>
                         </Box>
-                        <Box display="flex" sx={{position: 'relative'}} mr={5} flexDirection="column">
+                        <Box display="flex" sx={{ position: 'relative'}} mr={5} flexDirection="column">
                             <Typography color="textSecondary" variant="body2">
                                 Stage
                             </Typography>
@@ -104,6 +106,12 @@ const OrderShowContent = () => {
                                 {record.stage ?? '无'}
                             </Typography>
                             <div className={"order-show-status-ball" + ' ' +record.stage}></div>
+                        </Box>
+                        <Box sx={{position: 'absolute', bottom: '0', right: '20px'}}>
+                            <Button variant='outlined'>
+                                <FileDownloadIcon />
+                                导出订单内容
+                            </Button>
                         </Box>
                     </Box>
                     <Box display="flex" mt={3}>
@@ -127,6 +135,7 @@ const OrderShowContent = () => {
                     </Box>
                     <Box mt={6} mb={2} style={{ whiteSpace: 'pre-line' }}>
                         {record.additional ? record.additional.map((note, index) => (
+                            //
                             <NoteList key={note?.noteId} note={note} handleDeleteNote={handleDeleteNote} />
                         )) : null}
                     </Box>
@@ -218,7 +227,12 @@ const  NotesIterator = () => {
                         base64: imgUrl,
                         type: 'img',
                     }, '?from=update_note');
-                    return result;
+                    if (result.success) {
+                        notify('增加图片成功');
+                        refresh();
+                    } else {
+                        notify('增加图片失败');
+                    }
                 }
                 uploadImgNote();
 
@@ -294,15 +308,13 @@ const  NotesIterator = () => {
 }
 
 const NoteList = ({ note, handleDeleteNote }) => {
-    // const [imgList, setImgList] = useState([note?.value]);
-    const [currentImage, setCurrentImage] = useState(0);
+    const isImgNote = note?.type === 'img';
+    const imgList = [note.value];
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const openImageViewer = useCallback((index) => {
-        setCurrentImage(index);
         setIsViewerOpen(true);
     }, []);
     const closeImageViewer = () => {
-        setCurrentImage(0);
         setIsViewerOpen(false);
     };
 
@@ -310,7 +322,7 @@ const NoteList = ({ note, handleDeleteNote }) => {
         <Box className="order-show-note-area">
         <Typography sx={{color: 'rgba(0, 0, 0, 0.6)'}} mb={2}>{new Date(note.noteTime).toLocaleString()}</Typography>
         <Box display="flex">
-            {note.type ==='img'
+            { isImgNote
                 ? <Box className="img-area">
                     <img alt='' src={note.value} onClick={() => openImageViewer(0)} />
                 </Box>
@@ -320,10 +332,10 @@ const NoteList = ({ note, handleDeleteNote }) => {
             }
             <DeleteForeverIcon onClick={() => handleDeleteNote(note)} sx={{cursor:'pointer', marginLeft: '10px'}} />
         </Box>
-            {isViewerOpen && (
+            {isImgNote && isViewerOpen && (
                 <ImageViewer
                     src={ imgList }
-                    currentIndex={ currentImage }
+                    currentIndex={ 0 }
                     disableScroll={ false }
                     closeOnClickOutside={ true }
                     onClose={ closeImageViewer }

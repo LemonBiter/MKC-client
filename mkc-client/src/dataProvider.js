@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// const apiUrl="http://13.236.86.158:3000";
+// const apiUrl="http://13.237.249.81:3000";
 // const apiUrl = "http://54.252.241.230:3000";
 const apiUrl = "http://localhost:3000";
 const request = axios.create({
