@@ -1,8 +1,6 @@
 import axios from 'axios';
 
-// const apiUrl="http://13.237.249.81:3000";
-// const apiUrl = "http://54.252.241.230:3000";
-const apiUrl = "http://localhost:3000";
+
 const request = axios.create({
     baseURL: apiUrl,
     timeout: 50 * 1000,
@@ -13,6 +11,7 @@ const request = axios.create({
 // import jsonServerProvider from "ra-data-json-server";
 import { stringify } from "query-string";
 import { fetchUtils } from "react-admin";
+import {apiUrl} from "./const";
 const httpClient = fetchUtils.fetchJson;
 
 export const dataProvider = {
@@ -71,6 +70,12 @@ export const dataProvider = {
             return   {
                 data: resp.data.data,
             }
+        });
+    },
+    getImageBuffer: (resource, params, config) => {
+        const url = `${apiUrl}/${resource}/${params.id}`
+        return request.get(url, config).then((resp) => {
+            return resp;
         });
     },
     getImg: (resource, params) => {
@@ -135,20 +140,38 @@ export const dataProvider = {
             body: JSON.stringify(params.data),
         }).then(({ json }) => ({ data: json }));
     },
-
-    create: (resource, params) => {
+    create: (resource, params, config) => {
             const url = `${resource}/create_${resource}`
-            return request.post(url, params).then((resp) => {
+            return request.post(url, params, config).then((resp) => {
                 return   {
                     success: resp?.data?.success,
                     data: resp?.data?.data,
                     message: resp?.data?.message || ''
                 }
             });
-
-
+    },
+    updateImage: (resource, fileId, formData, config) => {
+        const url = `${resource}/${fileId}`
+        console.log('url123')
+        return request.put(url, formData, config).then((resp) => {
+            return   {
+                success: resp?.data?.success,
+                data: resp?.data?.data,
+                message: resp?.data?.message || ''
+            }
+        });
     },
 
+    // export: (resource, params) => {
+    //     const url = `${resource}/export_${resource}/${params.id}`
+    //     return request.get(url, params).then((resp) => {
+    //         return   {
+    //             success: resp?.data?.success,
+    //             data: resp?.data?.data,
+    //             message: resp?.data?.message || ''
+    //         }
+    //     });
+    // },
 
     delete: (resource, params) => {
         console.log(params);

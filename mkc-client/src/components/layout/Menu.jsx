@@ -3,6 +3,7 @@ import {useCallback, useEffect, useState} from 'react';
 import Box from '@mui/material/Box';
 import LabelIcon from '@mui/icons-material/Label';
 import MessageIcon from '@mui/icons-material/Message';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 
 import {
     useTranslate,
@@ -19,17 +20,42 @@ import categories from '../../categories';
 import reviews from '../../reviews';
 import SubMenu from './SubMenu';
 import {dataProvider} from "../../dataProvider";
+import {WEB_SOCKET_LINK} from "../../const";
+import {useWebSocket} from "../../WebSocketContext";
 
 const Menu = ({ dense = false }) => {
+    const socket = useWebSocket();
     const [unconfirmedMessage, setUnconfirmedMessage] = useState(0)
+
+    useEffect(() => {
+        if (socket) {
+            const method = (event) => {
+                if (event?.data) {
+                    console.log(event?.data);
+                    const { count } = JSON.parse(event?.data)
+                    setUnconfirmedMessage(count);
+                }
+            }
+            socket.addEventListener('message', method);
+            console.log('bind new method');
+            return () => {
+                socket.removeEventListener(method);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        console.log('unconfirmedMessage:', unconfirmedMessage);
+    }, [unconfirmedMessage]);
+
     const fetchUnconfirmedMessage = useCallback(async() => {
         const { data } = await dataProvider.getUnconfirmedMessage('message');
         setUnconfirmedMessage(parseInt(data));
     }, []);
 
     useEffect(() => {
-        setInterval(fetchUnconfirmedMessage, 5000);
-    }, [fetchUnconfirmedMessage]);
+        fetchUnconfirmedMessage()
+    }, []);
 
     const [state, setState] = useState({
         menuCatalog: true,
@@ -63,8 +89,10 @@ const Menu = ({ dense = false }) => {
                 leftIcon={<MessageIcon />}
                 dense={dense}
             >
-
-                {unconfirmedMessage ? <span style={{color: 'red'}}>未读消息：({unconfirmedMessage})</span> : `${translate(`resources.message.name`, { smart_count: 2 })}`}
+                {unconfirmedMessage
+                    ? <span style={{color: 'red'}}>
+                    未读消息：({unconfirmedMessage})</span>
+                    : `${translate(`resources.message.name`, { smart_count: 2 })}`}
             </MenuItemLink>
             <MenuItemLink
                 to="/order"
@@ -93,6 +121,12 @@ const Menu = ({ dense = false }) => {
                 leftIcon={<reviews.icon />}
                 dense={dense}
             />
+            <MenuItemLink
+                to="/storage"
+                state={{ _scrollToTop: true }}
+                leftIcon={<WarehouseIcon />}
+                dense={dense}
+            >库存</MenuItemLink>
         </Box>
     );
 };

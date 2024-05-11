@@ -32,6 +32,7 @@ import Zoom from "react-medium-image-zoom";
 import '../../css/index.css'
 import {useCallback, useEffect, useState} from "react";
 import {dataProvider} from "../../dataProvider";
+import{ apiUrl } from "../../const";
 import generateShortId from "ssid";
 import {useDispatch, useSelector} from "react-redux";
 import {update} from "../../app/message";
@@ -118,8 +119,11 @@ export const MaterialItem = (props) => {
     const record = useRecordContext(props);
     if (!record) return null;
     const fetchImgUrl = useCallback(async () => {
-        const { data } = await dataProvider.getImg('material', { id: record.id });
-        setImgUrl(data);
+        if (record.fileId) {
+            const resp = await dataProvider.getImageBuffer('image', { id: record.fileId }, {responseType: 'blob'});
+            const url = window.URL.createObjectURL(new Blob([resp.data]));
+            setImgUrl(url);
+        }
     }, []);
 
     useEffect(() => {
@@ -196,11 +200,9 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     const handleDisagree = () => {
         handleCloseDialog();
     }
-
     const handleAgree = async () => {
         const messageId = generateShortId();
         const res = await dataProvider.create('message', { title: 'supply', id: messageId ,detail});
-        console.log(res);
         if (res?.success) {
             dispatch(update());
             handleCloseDialog();

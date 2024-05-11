@@ -1,12 +1,20 @@
-import {Box, Card, Typography, Button} from "@mui/material";
+import {Box, Card, Typography, Button, useMediaQuery} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
-import {dataProvider} from "../../dataProvider";
+import { dataProvider} from "../../dataProvider";
+import{ apiUrl } from "../../const";
 import {useNotify, useRefresh} from "react-admin";
 import generateShortId from "ssid";
 import {useDispatch, useSelector} from "react-redux";
 import { update } from '../../app/message'
+import * as React from "react";
+import ImageViewer from "react-simple-image-viewer";
+import {WEB_SOCKET_LINK} from "../../const";
+import {useWebSocket} from "../../WebSocketContext";
 
 const MessageShow = () => {
+    const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
+    // const [socket, setSocket] = useState(null);
+    const socket = useWebSocket();
     const [messages, setMessages] = useState([]);
     const fetchMessageList = useCallback(async () => {
         const { data } = await dataProvider.getList('message');
@@ -16,6 +24,15 @@ const MessageShow = () => {
     useEffect(() => {
         fetchMessageList();
     }, [1]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.onmessage(() => {
+                console.log('haha');
+                fetchMessageList();
+            })
+        }
+    }, []);
 
     const handleRefresh = () => {
         fetchMessageList();
@@ -30,9 +47,8 @@ const MessageShow = () => {
             display: 'flex',
             justifyContent: 'flex-start'
         }}>
-
             <Box sx={{
-                width: '50%',
+                width: isSmall ? '100%' : '60%',
                 height: '100%',
                 display: 'flex',
                 overflow: 'scroll',
@@ -49,48 +65,86 @@ const MessageShow = () => {
     )
 }
 
-const topics = {supply: '补货申请'}
+const topics = { supply: '补货申请' , arrival: '到货通知'}
 
 const MessageItem = ({ m, handleRefresh }) => {
     const notify = useNotify();
-    const { confirm, detail, id, published_date, title } = m;
+    const { confirm, detail, id, published_date, title, fileId } = m;
+    const [imgUrl, setImgUrl] = useState('');
+    const [imgList, setImgList] = useState([]);
+
     const localTime = new Date(published_date).toLocaleString();
     const topic = topics[title];
     const buttonStatus = confirm ? '已确认' : '确认'
     const handleMessageConfirm = () => {
         dataProvider.update('message', { id, confirm: true }).then((res) => {
             if (res.success) {
-                notify('已确认补货申请');
+                notify('已确认');
                 handleRefresh();
             }
         })
     }
 
+    const handleShowImg = useCallback(async () => {
+        const resp = await dataProvider.getImageBuffer('image', { id: fileId }, {responseType: 'blob'});
+        const url = window.URL.createObjectURL(new Blob([resp.data]));
+        setImgUrl(url);
+        setImgList([url]);
+    }, [])
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const openImageViewer = useCallback((index) => {
+        setIsViewerOpen(true);
+    }, []);
+    const closeImageViewer = () => {
+        setIsViewerOpen(false);
+    };
+
     return (
         <Card sx={{
             margin: '10px 20px 0 0',
-            height: '100px',
-            padding: '10px',
+            height: 'auto',
+            padding: '10px 20px',
             position: 'relative',
         }}>
-            <Box>
-                <Typography variant="subtitle2" sx={{fontSize: '18px'}}>
-                    （{detail}）的{topic}
-                </Typography>
-                <Typography ml={2} variant="subtitle2" sx={{fontSize: '14px'}} color="textSecondary">
-                    {localTime}
-                </Typography>
+            <Box sx={{display: 'flex'}}>
+                <Box sx={{display: 'flex', flexDirection: 'column', justifyContent:'space-evenly', flex: '1'}}>
+                    <Typography variant="subtitle2" sx={{fontSize: '20px'}}>
+                        {topic}: {detail}
+                    </Typography>
+                    <Typography variant="subtitle2" sx={{fontSize: '16px'}} color="textSecondary">
+                        {localTime}
+                    </Typography>
+                </Box>
+                { imgUrl ? <Box className="img-area" sx={{marginLeft:'30px', width: '100px', height: '100px', flex: '1'}}>
+                    <img style={{width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer'}} alt='' src={imgUrl} onClick={() => openImageViewer(0)} />
+                </Box> : null }
+            </Box>
+            <Box display='flex' justifyContent="flex-end" mt={2}>
+                {fileId
+                    ?<Button variant="contained"
+                             onClick={handleShowImg}
+                             sx={{marginRight: '10px'}}>查看图片</Button>
+                    : null }
                 <Button
                     disabled={confirm}
                     variant="contained"
                     sx={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    right: '10px',
-                }} onClick={handleMessageConfirm}>{buttonStatus}</Button>
+                        // position: 'absolute',
+                        // bottom: '20px',
+                        // right: '20px',
+                    }} onClick={handleMessageConfirm}>{buttonStatus}</Button>
             </Box>
+
+            {isViewerOpen && (
+                <ImageViewer
+                    src={ imgList }
+                    currentIndex={ 0 }
+                    disableScroll={ false }
+                    closeOnClickOutside={ true }
+                    onClose={ closeImageViewer }
+                />
+            )}
         </Card>
     )
 }
-
 export default  MessageShow;

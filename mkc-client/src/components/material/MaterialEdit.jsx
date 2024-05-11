@@ -9,7 +9,16 @@ import {
     useListContext,
     required,
     useNotify,
-    useRedirect, Edit, ImageField, SaveButton, DeleteButton, Toolbar, useRefresh, useRecordContext, NumberInput,
+    useRedirect,
+    Edit,
+    ImageField,
+    SaveButton,
+    DeleteButton,
+    Toolbar,
+    useRefresh,
+    useRecordContext,
+    NumberInput,
+    useEditController,
 } from 'react-admin';
 import '../../css/material.css'
 import generateShortId from "ssid";
@@ -21,82 +30,96 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Zoom from "react-medium-image-zoom";
 
 
-const EditToolbar = ({ displayImg }) => {
-    const notify = useNotify();
-    const redirect = useRedirect();
-    const refresh = useRefresh();
-    const record = useRecordContext();
-    const currentBase64 = displayImg || record?.base64 || '';
-    const onSuccess = async data => {
-        try {
-            if (data) {
-                Object.defineProperty(data, 'base64', { value: currentBase64, enumerable: true });
-                const jsonData = JSON.stringify(data);
-                const res = await dataProvider.update('material', data);
-                if (res.success) {
-                    notify('更新成功');
-                    redirect('/material');
-                    refresh();
-                }
-            } else {
-                notify('更新失败，使用了无效字段');
-            }
-        } catch (e) {
-            console.log(e)
-        }
-    };
+// const EditToolbar = ({ displayImg }) => {
+//     const notify = useNotify();
+//     const redirect = useRedirect();
+//     const refresh = useRefresh();
+//     const record = useRecordContext();
+//     const currentBase64 = displayImg || record?.base64 || '';
+//     const onSuccess = async data => {
+//         try {
+//             if (data) {
+//                 Object.defineProperty(data, 'base64', { value: currentBase64, enumerable: true });
+//                 const jsonData = JSON.stringify(data);
+//                 const res = await dataProvider.update('material', data);
+//                 if (res.success) {
+//                     notify('更新成功');
+//                     redirect('/material');
+//                     refresh();
+//                 }
+//             } else {
+//                 notify('更新失败，使用了无效字段');
+//             }
+//         } catch (e) {
+//             console.log(e)
+//         }
+//     };
+//
+//     return (
+//     <Toolbar>
+//         <SaveButton alwaysEnable
+//                     type="button"
+//                     label="保存"
+//                     mutationOptions={{ onSuccess }} />
+//         <DeleteButton
+//             label="删除"
+//         />
+//     </Toolbar>
+// )};
 
-    return (
-    <Toolbar>
-        <SaveButton alwaysEnable
-                    type="button"
-                    label="保存"
-                    mutationOptions={{ onSuccess }} />
-        <DeleteButton
-            label="删除"
-        />
-    </Toolbar>
-)};
-
-const ImageWrap = ({displayImg}) => {
-    const record = useRecordContext();
-    const originSrc = record?.base64 || '';
-    if (displayImg) {
-        return <div className="img-upload">
-            <img alt='' src={displayImg} />
-        </div>;
-    } else {
-        return <div className="img-upload">
-            {originSrc ? <img alt='' src={originSrc} /> : '图片上传(非必需)'}
-        </div>;
-    }
+const ImageWrap = ({displayUrl}) => {
+    return <div className="img-upload">
+        {displayUrl ? <img alt='' src={displayUrl} /> : '图片上传(非必需)'}
+    </div>;
 
 }
 const MaterialEdit = (props) => {
     const notify = useNotify();
     const redirect = useRedirect();
     const [displayImg, setDisplayImg] = useState('');
+    const [imgFile, setImgFile] = useState(null);
+    const [displayUrl, setDisplayUrl] = useState('')
+    const { record } = useEditController();
+
+    useEffect(() => {
+        if (record?.fileId) {
+            const fetchImg = async () => {
+                const resp = await dataProvider.getImageBuffer('image', { id: record.fileId }, {responseType: 'blob'});
+                const url = window.URL.createObjectURL(new Blob([resp.data]));
+                setDisplayUrl(url);
+            }
+            fetchImg();
+        }
+    }, [record]);
+
+
     const handleImgUpload = async () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.click();
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
+            setImgFile(file);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.addEventListener('load', (e) => {
-                setDisplayImg(e.target.result)
+                setDisplayUrl(e.target.result)
             })
         })
 
     }
     const handleSave = async (values) => {
-        console.log(values)
         try {
             if (values) {
-                const id = generateShortId()
-                if (displayImg) {
-                    Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                if (imgFile) {
+                    const formData = new FormData();
+                    formData.append('image', imgFile);
+                    formData.append('fileId', values.fileId);
+                    formData.append('from', 'material');
+                    await dataProvider.updateImage('image', values.fileId, formData, {headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }});
+                    Object.defineProperty(values, 'fileId', { value: values.fileId, enumerable: true });
                 }
                 const res = await dataProvider.update('material', values, '?from=update_info');
                 if (res.success) {
@@ -119,7 +142,7 @@ const MaterialEdit = (props) => {
                 </Typography>
                 <Box className="form-box-wrap">
                     <Box className="form-box-item left" >
-                        <ImageWrap displayImg={displayImg} />
+                        <ImageWrap displayUrl={displayUrl} />
                         <Button
                             component="label"
                             role={undefined}

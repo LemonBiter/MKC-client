@@ -9,7 +9,7 @@ import {
     useRedirect, DateField, RichTextField, SimpleShowLayout, Show, useListContext, useNotify, useRefresh,
 } from 'react-admin';
 // import { Controlled as ControlledZoom } from "react-medium-image-zoom";
-import { calculateCount } from '../utils';
+import {calculateCount, parseOrderDataToCSV} from '../utils';
 import { Box, Dialog, DialogContent, Typography, Divider, TextField as NoteInput, Button } from '@mui/material';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import CollectionsIcon from '@mui/icons-material/Collections';
@@ -19,8 +19,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ImageViewer from 'react-simple-image-viewer';
 import '../../css/order.css'
 
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {dataProvider} from "../../dataProvider";
+import {CSVLink} from "react-csv";
 
 const OrderShow = ({ open, id}) => {
     const redirect = useRedirect();
@@ -59,6 +60,8 @@ export default OrderShow;
 const OrderShowContent = () => {
     const refresh = useRefresh();
     const record = useRecordContext();
+    const [csvExportData, setCsvExportData] = useState([])
+    const csvLinkRef = useRef();
     if (!record) return null;
     const roomInfo = record.roomInfo;
     const { mArr, aArr } = calculateCount(roomInfo);
@@ -70,6 +73,26 @@ const OrderShowContent = () => {
             refresh();
         }
     }
+    const csvData = [
+        ["firstname", "lastname", "email"],
+        ["Ahmed", "Tomi", "ah@smthing.co.com"],
+        ["Raed", "Labes", "rl@smthing.co.com"],
+        ["Yezzi", "Min l3b", "ymin@cocococo.com"]
+    ];
+
+    useEffect(() => {
+        if (csvExportData?.length) {
+            csvLinkRef.current.link.click();
+        }
+    }, [csvExportData]);
+
+    const handleOrderExport = useCallback(async () => {
+        const { data } = await dataProvider.getOne('order', {id: record.id });
+        if (!data) return null;
+        const csvData = parseOrderDataToCSV(data);
+        setCsvExportData(csvData);
+    }, []);
+
     return (
                 <Box>
                     <Typography variant="h5">{record.name ?? '无'}</Typography>
@@ -108,10 +131,14 @@ const OrderShowContent = () => {
                             <div className={"order-show-status-ball" + ' ' +record.stage}></div>
                         </Box>
                         <Box sx={{position: 'absolute', bottom: '0', right: '20px'}}>
-                            <Button variant='outlined'>
+                            <Button onClick={handleOrderExport}
+                                    variant='outlined'>
                                 <FileDownloadIcon />
                                 导出订单内容
                             </Button>
+                            <CSVLink data={csvExportData}
+                                     ref={csvLinkRef}>
+                            </CSVLink>
                         </Box>
                     </Box>
                     <Box display="flex" mt={3}>

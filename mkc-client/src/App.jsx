@@ -40,6 +40,7 @@ import accessory from "./components/accessory";
 import OrderEdit from "./components/orders/OrderEdit"
 import MessageShow from "./components/message/messageShow";
 import {useSelector} from "react-redux";
+import StorageShow from "./components/storage/storageShow";
 
 
 export const App = () => {
@@ -54,6 +55,9 @@ export const App = () => {
               <Title title="Modern Kitchens Cabinets Admin"/>
               <CustomRoutes>
                   <Route path="/message" element={<MessageShow />} />
+              </CustomRoutes>
+              <CustomRoutes>
+                  <Route path="/storage" element={<StorageShow />} />
               </CustomRoutes>
               <Resource
                   name="message"

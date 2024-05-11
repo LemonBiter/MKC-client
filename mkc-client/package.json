@@ -23,6 +23,7 @@
     "ra-language-french": "^4.16.15",
     "react": "^18.2.0",
     "react-admin": "^4.16.0",
+    "react-csv": "^2.2.2",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.3",
     "react-medium-image-zoom": "^5.2.0",
@@ -32,6 +33,7 @@
     "react-simple-image-viewer": "^1.2.2",
     "react-zmage": "^0.8.5-beta.37",
     "redux": "^5.0.1",
+    "socket.io-client": "^4.7.5",
     "ssid": "^0.0.4"
   },
   "devDependencies": {

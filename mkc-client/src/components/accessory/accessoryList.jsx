@@ -28,7 +28,6 @@ import {
 import 'react-medium-image-zoom/dist/styles.css'
 import {Button, Box, Paper, Typography, Link as MuiLink, Dialog, DialogTitle, DialogActions, DialogContent} from "@mui/material";
 import { Link } from 'react-router-dom';
-import Zoom from "react-medium-image-zoom";
 import '../../css/accessory.css'
 import {useCallback, useEffect, useState} from "react";
 import {dataProvider} from "../../dataProvider";
@@ -118,14 +117,16 @@ export const AccessoryItem = (props) => {
     const record = useRecordContext(props);
     if (!record) return null;
     const fetchImgUrl = useCallback(async () => {
-        const { data } = await dataProvider.getImg('accessory', { id: record.id });
-        setImgUrl(data);
+        if (record.fileId) {
+            const resp = await dataProvider.getImageBuffer('image', { id: record.fileId }, {responseType: 'blob'});
+            const url = window.URL.createObjectURL(new Blob([resp.data]));
+            setImgUrl(url);
+        }
     }, []);
 
     useEffect(() => {
         fetchImgUrl();
     }, []);
-
 
 
     const handleSupply = (e) => {
@@ -200,7 +201,6 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     const handleAgree = async () => {
         const messageId = generateShortId();
         const res = await dataProvider.create('message', { title: 'supply', id: messageId ,detail});
-        console.log(res);
         if (res?.success) {
             dispatch(update());
             handleCloseDialog();

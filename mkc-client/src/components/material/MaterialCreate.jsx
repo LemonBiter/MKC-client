@@ -40,15 +40,23 @@ const MaterialCreate = () => {
     const notify = useNotify();
     const redirect = useRedirect();
     const [displayImg, setDisplayImg] = useState('');
+    const [imgFile, setImgFile] = useState(null);
     const handleSave = async (values) => {
         try {
             if (values) {
                 const id = generateShortId()
                 Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
-                if (displayImg) {
-                    Object.defineProperty(values, 'base64', { value: displayImg, enumerable: true });
+                const fileId = imgFile ? generateShortId() : '';
+                if (imgFile) {
+                    const formData = new FormData();
+                    formData.append('image', imgFile);
+                    formData.append('fileId', fileId);
+                    formData.append('from', 'material');
+                    await dataProvider.create('image',formData, {headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }});
+                    Object.defineProperty(values, 'fileId', { value: fileId, enumerable: true });
                 }
-                const jsonData = JSON.stringify(values);
                 const res = await dataProvider.create('material', values);
                 if (res.success) {
                     notify('创建成功');
@@ -68,6 +76,7 @@ const MaterialCreate = () => {
         input.click();
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
+            setImgFile(file);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.addEventListener('load', (e) => {
