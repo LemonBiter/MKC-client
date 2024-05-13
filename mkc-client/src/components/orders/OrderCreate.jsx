@@ -23,7 +23,7 @@ import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Divider, Grid, Typography, Dialog, TextField} from "@mui/material";
+import {Box, Card, Divider, Grid, Typography, Dialog, TextField, useMediaQuery} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
 import { removedSelection, cleanAll, update } from '../../app/order'
@@ -306,9 +306,9 @@ const OrderCreate = () => {
     const [materialList, setMaterialList] = useState([]);
     const [accessoryList, setAccessoryList] = useState([]);
     const roomInfo = useSelector((state) => state.order.value)
+    const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
     useEffect(() => {
-
         const fetchMaterialList = async () => {
             const { data } = await dataProvider.getListWithoutFile('material');
             setMaterialList(data);
@@ -352,7 +352,7 @@ const OrderCreate = () => {
     }
     return (
         // <Dialog open={true}>
-            <Create aside={<OrderAside roomInfo={roomInfo} />} actions={<CreateActions />}>
+            <Create aaside={!isSmall ? <OrderAside roomInfo={roomInfo} /> : <Fragment/>} actions={<CreateActions />}>
             <SimpleForm toolbar={<CreateToolBar />}
                         className="order-create-simple-form-wrap"
                         warnWhenUnsavedChanges
@@ -415,7 +415,7 @@ const OrderCreate = () => {
                     <Divider textAlign="center" sx={{margin: '10px 0 50px 0'}}>房间添加</Divider>
                     <RoomSelectBox />
                 </Box>
-                <Box className="order-create-aside"></Box>
+                <Box className="order-create-aside" sx={{flex: isSmall ? '0' : '1'}}></Box>
             </SimpleForm>
         </Create>
         // </Dialog>

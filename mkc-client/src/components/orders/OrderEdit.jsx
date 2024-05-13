@@ -24,7 +24,7 @@ import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useCallback, useEffect, useState} from "react";
-import {Box, Card, Divider, Grid, TextField, Typography, Button} from "@mui/material";
+import {Box, Card, Divider, Grid, TextField, Typography, Button, useMediaQuery} from "@mui/material";
 import Zoom from "react-medium-image-zoom";
 import { useSelector, useDispatch } from 'react-redux'
 import {cleanAll, decrement, increment, removedSelection, update} from '../../app/order'
@@ -361,6 +361,7 @@ const OrderEdit = () => {
     const [accessoryList, setAccessoryList] = useState([]);
     const roomInfo = useSelector((state) => state.order.value)
     const [roomInfoDetail, setRoomInfoDetail] = useState({});
+    const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
     useEffect(() => {
         if (roomInfo && Object.keys(roomInfo)?.length) {
@@ -405,7 +406,7 @@ const OrderEdit = () => {
 
     }
     return (
-        <Edit aside={<OrderAside roomInfo={roomInfoDetail} />} actions={<EditActions />}>
+        <Edit aside={!isSmall ? <OrderAside roomInfo={roomInfoDetail} /> : <Fragment/>} actions={<EditActions />}>
             <SimpleForm className="order-create-simple-form-wrap"
                         toolbar={<EditToolbar />}
                         warnWhenUnsavedChanges
