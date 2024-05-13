@@ -1,5 +1,5 @@
 import { DragDropContext } from '@hello-pangea/dnd';
-import { Box } from '@mui/material';
+import {Box, useMediaQuery} from '@mui/material';
 import isEqual from 'lodash/isEqual';
 import { useEffect, useState } from 'react';
 import {useListContext, useTranslate} from "react-admin";
@@ -8,6 +8,7 @@ import { getDealsByStage, stages } from './stages';
 import {dataProvider} from "../../dataProvider";
 
 export const OrderListContent = () => {
+    const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
     const { data: unorderedData, isLoading, refetch } = useListContext();
     const [dealsByStage, setDealsByStage] = useState(
         getDealsByStage([])
@@ -63,7 +64,8 @@ export const OrderListContent = () => {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Box display="flex">
+            <Box display="flex" sx={{
+                flexDirection: isSmall ? 'column' : 'row'}}>
             {stages.map((stage, index) => (
                 <OrderColumn
                     stage={stage}

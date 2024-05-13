@@ -22,6 +22,7 @@ import {Box, Card, Typography} from "@mui/material";
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Compressor from "compressorjs";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -45,26 +46,44 @@ const MaterialCreate = () => {
         try {
             if (values) {
                 const id = generateShortId()
-                Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
                 const fileId = imgFile ? generateShortId() : '';
+                Object.defineProperty(values, 'id', {value: id, writable: false, enumerable: true});
                 if (imgFile) {
-                    const formData = new FormData();
-                    formData.append('image', imgFile);
-                    formData.append('fileId', fileId);
-                    formData.append('from', 'material');
-                    await dataProvider.create('image',formData, {headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }});
-                    Object.defineProperty(values, 'fileId', { value: fileId, enumerable: true });
+                    const fileSize = Math.round(imgFile.size / 1024 / 1024);
+                    const quality = fileSize >= 2 ? 0.4 : 0.6
+                    new Compressor(imgFile, {
+                        quality, async success(compressedFile) {
+                            const formData = new FormData();
+                            formData.append('image', compressedFile);
+                            formData.append('fileId', fileId);
+                            formData.append('from', 'material');
+                            await dataProvider.create('image', formData, {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            });
+                            Object.defineProperty(values, 'fileId', {value: fileId, enumerable: true});
+                            const res = await dataProvider.create('material', values);
+                            if (res.success) {
+                                notify('创建成功');
+                                redirect('/material');
+                            } else {
+                                notify('创建失败，使用了无效字段');
+                            }
+
+                        }
+                    });
+                } else {
+                    const res = await dataProvider.create('material', values);
+                    if (res.success) {
+                        notify('创建成功');
+                        redirect('/material');
+                    } else {
+                        notify('创建失败，使用了无效字段');
+                    }
                 }
-                const res = await dataProvider.create('material', values);
-                if (res.success) {
-                    notify('创建成功');
-                    redirect('/material');
-                }
-            } else {
-                notify('创建失败，使用了无效字段');
             }
+
         } catch (e) {
 
         }

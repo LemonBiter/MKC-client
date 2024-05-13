@@ -1,4 +1,4 @@
-import OrderIcon from '@mui/icons-material/AttachMoney';
+import CabinIcon from '@mui/icons-material/Cabin';
 
 import MaterialList from './materialList';
 import MaterialEdit from './MaterialEdit';
@@ -8,6 +8,6 @@ export default {
     list: MaterialList,
     edit: MaterialEdit,
     create: MaterialCreate,
-    icon: OrderIcon,
+    icon: CabinIcon,
     recordRepresentation: 'reference',
 };

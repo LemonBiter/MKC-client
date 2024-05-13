@@ -1,6 +1,7 @@
 // WebSocketContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {WEB_SOCKET_LINK} from "./const";
+import io from 'socket.io-client';
 
 const WebSocketContext = createContext(null);
 
@@ -10,17 +11,10 @@ export const WebSocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const ws = new WebSocket(WEB_SOCKET_LINK);
-        ws.onopen = () => console.log('WebSocket connected');
-        ws.onmessage = (callback) => callback();
-        ws.onclose = () => console.log('WebSocket disconnected');
-        ws.onerror = error => console.error('WebSocket error:', error);
+        const newSocket = io(WEB_SOCKET_LINK, { autoConnect: true });
+        setSocket(newSocket);
 
-        setSocket(ws);
-
-        return () => {
-            ws.close();
-        };
+        return () => newSocket.close();
     }, []);
 
     return (

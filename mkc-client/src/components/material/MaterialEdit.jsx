@@ -28,6 +28,7 @@ import {Box, Card, Typography} from "@mui/material";
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Zoom from "react-medium-image-zoom";
+import Compressor from "compressorjs";
 
 
 // const EditToolbar = ({ displayImg }) => {
@@ -112,25 +113,41 @@ const MaterialEdit = (props) => {
         try {
             if (values) {
                 if (imgFile) {
-                    const formData = new FormData();
-                    formData.append('image', imgFile);
-                    formData.append('fileId', values.fileId);
-                    formData.append('from', 'material');
-                    await dataProvider.updateImage('image', values.fileId, formData, {headers: {
-                            'Content-Type': 'multipart/form-data'
+                    const fileSize = Math.round(imgFile.size / 1024 / 1024);
+                    const quality = fileSize >= 2 ? 0.4 : 0.6
+                    new Compressor(imgFile, {
+                        quality, async success(compressedFile) {
+                            const formData = new FormData();
+                            formData.append('image', compressedFile);
+                            formData.append('fileId', values.fileId);
+                            formData.append('from', 'material');
+                            await dataProvider.updateImage('image', values.fileId, formData, {headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }});
+                            Object.defineProperty(values, 'fileId', { value: values.fileId, enumerable: true });
+                            const res = await dataProvider.update('material', values, '?from=update_info');
+                            if (res.success) {
+                                notify('创建成功');
+                                redirect('/material');
+                            } else {
+                                notify('创建失败');
+                            }
                         }});
-                    Object.defineProperty(values, 'fileId', { value: values.fileId, enumerable: true });
-                }
-                const res = await dataProvider.update('material', values, '?from=update_info');
-                if (res.success) {
-                    notify('创建成功');
-                    redirect('/material');
+
+                } else {
+                    const res = await dataProvider.update('material', values, '?from=update_info');
+                    if (res.success) {
+                        notify('创建成功');
+                        redirect('/material');
+                    } else {
+                        notify('创建失败');
+                    }
                 }
             } else {
                 notify('创建失败，使用了无效字段');
             }
         } catch (e) {
-
+            console.log(e);
         }
 
     }

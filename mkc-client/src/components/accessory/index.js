@@ -1,5 +1,4 @@
-import OrderIcon from '@mui/icons-material/AttachMoney';
-
+import ExtensionIcon from '@mui/icons-material/Extension';
 import AccessoryList from './accessoryList';
 import AccessoryEdit from './accessoryEdit';
 import AccessoryCreate from './accessoryCreate';
@@ -8,6 +7,6 @@ export default {
     list: AccessoryList,
     edit: AccessoryEdit,
     create: AccessoryCreate,
-    icon: OrderIcon,
+    icon: ExtensionIcon,
     recordRepresentation: 'reference',
 };

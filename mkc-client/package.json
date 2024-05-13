@@ -13,6 +13,7 @@
     "@mui/icons-material": "^5.15.15",
     "@reduxjs/toolkit": "^2.2.3",
     "axios": "^1.6.8",
+    "compressorjs": "^1.2.1",
     "lodash": "^4.17.21",
     "ra-data-json-server": "^4.16.15",
     "ra-data-simple-rest": "^4.16.0",

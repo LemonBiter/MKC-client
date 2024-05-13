@@ -121,6 +121,7 @@ export const MaterialItem = (props) => {
     const fetchImgUrl = useCallback(async () => {
         if (record.fileId) {
             const resp = await dataProvider.getImageBuffer('image', { id: record.fileId }, {responseType: 'blob'});
+            console.log(resp);
             const url = window.URL.createObjectURL(new Blob([resp.data]));
             setImgUrl(url);
         }

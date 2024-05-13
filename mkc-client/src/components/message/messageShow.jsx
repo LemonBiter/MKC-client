@@ -13,7 +13,6 @@ import {useWebSocket} from "../../WebSocketContext";
 
 const MessageShow = () => {
     const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
-    // const [socket, setSocket] = useState(null);
     const socket = useWebSocket();
     const [messages, setMessages] = useState([]);
     const fetchMessageList = useCallback(async () => {
@@ -27,8 +26,8 @@ const MessageShow = () => {
 
     useEffect(() => {
         if (socket) {
-            socket.onmessage(() => {
-                console.log('haha');
+            socket.on('updateMessage', (data) => {
+                console.log('ws: fetch message list');
                 fetchMessageList();
             })
         }

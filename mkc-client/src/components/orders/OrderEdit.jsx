@@ -34,6 +34,7 @@ import OrderAside from "./OrderAside";
 import CollectionsIcon from "@mui/icons-material/Collections";
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import ImageViewer from "react-simple-image-viewer";
+import Compressor from "compressorjs";
 
 const roomOptions = [
     { value: 'Kitchen', label: 'Kitchen' },
@@ -200,7 +201,6 @@ const RoomCard = ({ roomInfo, materialList, accessoryList, onRoomDelete, room, i
             const removed = actionMeta?.removedValue?.value
             dispatch(removedSelection({ id: removed, room: room.value, type: 'accessory' }))
         }
-        console.log('value:', value);
         setSelectedAccessory(value);
     }
 
@@ -289,10 +289,13 @@ const RoomSelectBox = () => {
     }, []);
     const { roomInfo } = useRecordContext();
     useEffect(() => {
-        const rooms = Object.keys(roomInfo).map((room) => {
-            return { value: room, label: room }
-        });
-        handleRoomUpdate(rooms)
+        if (roomInfo && Object.keys(roomInfo).length) {
+            const rooms = Object.keys(roomInfo).map((room) => {
+                return { value: room, label: room }
+            });
+            handleRoomUpdate(rooms)
+        }
+
     }, [roomInfo]);
     const handleHeightIncrease = () => {
         const roomBoxEl = document.getElementsByClassName('room-box')[0];
@@ -387,7 +390,7 @@ const OrderEdit = () => {
         try {
             if (values) {
                 Object.defineProperty(values, 'roomInfo', { value: roomInfo, enumerable: true });
-                const jsonData = JSON.stringify(values);
+                delete values.additional;
                 const res = await dataProvider.update('order', values,'?from=edit_page');
                 if (res.success) {
                     notify('创建成功');
@@ -476,31 +479,54 @@ const  NotesIterator = () => {
     const [currentNote, setCurrentNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [imgUrl, setImgUrl] = useState('');
+    const [imgFile, setImgFile] = useState('');
     useEffect(() => {
-        if (imgUrl) {
+        if (imgFile) {
+            const fileId = generateShortId();
             const uploadImgNote = async () => {
-                const result = await dataProvider.update('order', {
-                    id: record.id,
-                    base64: imgUrl,
-                    type: 'img',
-                }, '?from=update_note');
-                if (result.success) {
-                    notify('增加图片成功');
-                    refresh();
-                } else {
+                try {
+                    const fileSize = Math.round(imgFile.size / 1024 / 1024);
+                    const quality = fileSize >= 2 ? 0.4 : 0.6
+                    new Compressor(imgFile, {
+                        quality, async success(compressedFile) {
+                            const formData = new FormData();
+                            formData.append('image', compressedFile);
+                            formData.append('fileId', fileId);
+                            formData.append('from', 'order');
+                            await dataProvider.create('image', formData, {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            });
+                            const result = await dataProvider.update('order', {
+                                id: record?.id,
+                                fileId,
+                                type: 'img',
+                            }, '?from=update_note');
+                            if (result.success) {
+                                notify('增加图片成功');
+                                refresh();
+                            } else {
+                                notify('增加图片失败');
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.log(e);
                     notify('增加图片失败');
                 }
             }
             uploadImgNote();
 
         }
-    }, [imgUrl]);
+    }, [imgFile]);
     const handleImgUpload = async (event) => {
         const input = document.createElement('input');
         input.type = 'file';
         input.click();
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
+            setImgFile(file);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.addEventListener('load', (e) => {
@@ -569,6 +595,7 @@ const NoteArea = () => {
     const record = useRecordContext();
     const refresh = useRefresh();
     if (!record || !record?.additional) return;
+
     const handleDeleteNote = async (note)=> {
         if (!record.id || !note.noteId) return;
         const res = await dataProvider.delete('order', { id: record.id, noteId: note.noteId });
@@ -585,15 +612,27 @@ const NoteArea = () => {
 };
 
 const NoteList = ({ note, handleDeleteNote }) => {
-    const [imgList, setImgList] = useState([note?.value]);
-    const [currentImage, setCurrentImage] = useState(0);
+    // const [imgList, setImgList] = useState([]);
+    const [displayUrl, setDisplayUrl] = useState('');
     const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const fetchImg = useCallback(async() => {
+        if (note?.type === 'img') {
+            const resp = await dataProvider.getImageBuffer('image', { id: note?.value }, {responseType: 'blob'});
+            const url = window.URL.createObjectURL(new Blob([resp.data]));
+            setDisplayUrl(url);
+            // setImgList([url]);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchImg();
+    }, []);
+
+
     const openImageViewer = useCallback((index) => {
-        setCurrentImage(index);
         setIsViewerOpen(true);
     }, []);
     const closeImageViewer = () => {
-        setCurrentImage(0);
         setIsViewerOpen(false);
     };
     return (
@@ -602,7 +641,7 @@ const NoteList = ({ note, handleDeleteNote }) => {
             <Box display="flex">
                 {note.type ==='img'
                     ? <Box className="img-area">
-                        <img alt='' src={note.value} onClick={() => openImageViewer(0)} />
+                        <img alt='' src={displayUrl} onClick={() => openImageViewer(0)} />
                     </Box>
                     : <Box className="content-area">
                         <Typography>{note.value}</Typography>
@@ -612,8 +651,8 @@ const NoteList = ({ note, handleDeleteNote }) => {
             </Box>
             {isViewerOpen && (
                 <ImageViewer
-                    src={ imgList }
-                    currentIndex={ currentImage }
+                    src={ [displayUrl] }
+                    currentIndex={ 0 }
                     disableScroll={ false }
                     closeOnClickOutside={ true }
                     onClose={ closeImageViewer }

@@ -22,6 +22,7 @@ import {Box, Card, Typography} from "@mui/material";
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Compressor from "compressorjs";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -47,21 +48,38 @@ const AccessoryCreate = () => {
                 const id = generateShortId()
                 Object.defineProperty(values, 'id', { value: id, writable: false, enumerable: true });
                 if (imgFile) {
-                    const fileId = generateShortId();
-                    const formData = new FormData();
-                    formData.append('image', imgFile);
-                    formData.append('fileId', fileId);
-                    formData.append('from', 'accessory');
-                    await dataProvider.create('image',formData, {headers: {
-                            'Content-Type': 'multipart/form-data'
+                    const fileSize = Math.round(imgFile.size / 1024 / 1024);
+                    const quality = fileSize >= 2 ? 0.4 : 0.6;
+                    new Compressor(imgFile, {
+                        quality, async success(compressedFile) {
+                            const fileId = generateShortId();
+                            const formData = new FormData();
+                            formData.append('image', compressedFile);
+                            formData.append('fileId', fileId);
+                            formData.append('from', 'accessory');
+                            await dataProvider.create('image',formData, {headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }});
+                            Object.defineProperty(values, 'fileId', { value: fileId, enumerable: true });
+                            const res = await dataProvider.create('accessory', values);
+                            if (res.success) {
+                                notify('创建成功');
+                                redirect('/accessory');
+                            } else {
+                                notify('创建失败');
+                            }
                         }});
-                    Object.defineProperty(values, 'fileId', { value: fileId, enumerable: true });
+
+                } else {
+                    const res = await dataProvider.create('accessory', values);
+                    if (res.success) {
+                        notify('创建成功');
+                        redirect('/accessory');
+                    } else {
+                        notify('创建失败');
+                    }
                 }
-                const res = await dataProvider.create('accessory', values);
-                if (res.success) {
-                    notify('创建成功');
-                    redirect('/accessory');
-                }
+
             } else {
                 notify('创建失败，使用了无效字段');
             }

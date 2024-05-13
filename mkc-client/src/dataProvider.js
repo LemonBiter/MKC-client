@@ -38,7 +38,6 @@ export const dataProvider = {
             } else {
                 url = `${apiUrl}/${resource}`;
             }
-
             return request.get(url, params).then((resp) => {
                 return   {
                     data: resp.data.data,
@@ -152,7 +151,6 @@ export const dataProvider = {
     },
     updateImage: (resource, fileId, formData, config) => {
         const url = `${resource}/${fileId}`
-        console.log('url123')
         return request.put(url, formData, config).then((resp) => {
             return   {
                 success: resp?.data?.success,
@@ -174,7 +172,6 @@ export const dataProvider = {
     // },
 
     delete: (resource, params) => {
-        console.log(params);
         return request.delete(`${apiUrl}/${resource}/${params.id}`, { data: params }).then((resp) => {
             return   {
                 success: resp.data.success,

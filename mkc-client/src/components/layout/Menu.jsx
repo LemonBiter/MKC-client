@@ -14,9 +14,8 @@ import {
 
 import visitors from '../../visitors';
 import orders from '../../components/orders/index';
-import invoices from '../../invoices';
-import products from '../../products';
-import categories from '../../categories';
+import accessory from "../accessory";
+import material from "../material";
 import reviews from '../../reviews';
 import SubMenu from './SubMenu';
 import {dataProvider} from "../../dataProvider";
@@ -29,24 +28,14 @@ const Menu = ({ dense = false }) => {
 
     useEffect(() => {
         if (socket) {
-            const method = (event) => {
-                if (event?.data) {
-                    console.log(event?.data);
-                    const { count } = JSON.parse(event?.data)
-                    setUnconfirmedMessage(count);
-                }
-            }
-            socket.addEventListener('message', method);
-            console.log('bind new method');
-            return () => {
-                socket.removeEventListener(method);
-            }
+            socket.on('updateMessage', (data) => {
+                const { count } = JSON.parse(data);
+                console.log('ws:' + count);
+                setUnconfirmedMessage(count);
+            });
         }
     }, []);
 
-    useEffect(() => {
-        console.log('unconfirmedMessage:', unconfirmedMessage);
-    }, [unconfirmedMessage]);
 
     const fetchUnconfirmedMessage = useCallback(async() => {
         const { data } = await dataProvider.getUnconfirmedMessage('message');
@@ -109,7 +98,7 @@ const Menu = ({ dense = false }) => {
                 primaryText={translate(`resources.material.name`, {
                     smart_count: 2,
                 })}
-                leftIcon={<reviews.icon />}
+                leftIcon={<material.icon />}
                 dense={dense}
             />
             <MenuItemLink
@@ -118,7 +107,7 @@ const Menu = ({ dense = false }) => {
                 primaryText={translate(`resources.accessory.name`, {
                     smart_count: 2,
                 })}
-                leftIcon={<reviews.icon />}
+                leftIcon={<accessory.icon />}
                 dense={dense}
             />
             <MenuItemLink

@@ -1,9 +1,10 @@
 import {Box, Card, Typography, Button, TextField, useMediaQuery, MenuItem, InputLabel, Select, FormControl} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
 import {dataProvider} from "../../dataProvider";
-import {useNotify, useRefresh} from "react-admin";
+import {useNotify, useRedirect, useRefresh} from "react-admin";
 import '../../css/storage.css';
 import generateShortId from "ssid";
+import Compressor from 'compressorjs';
 import {useDispatch, useSelector} from "react-redux";
 import { update } from '../../app/message'
 import * as React from "react";
@@ -95,10 +96,11 @@ const MessageItem = ({ m, handleRefresh }) => {
 }
 
 const OperationBox = () => {
+    const redirect = useRedirect();
     const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
     const [file, setFile] = useState(null);
     const [content, setContent] = useState('');
-    const [type, setType] = useState('');
+    const [type, setType] = useState('arrival');
     const handleTypeChange = (event) => {
         setType(event.target.value);
     };
@@ -114,18 +116,23 @@ const OperationBox = () => {
         try {
             const fileId = file ? generateShortId() : '';
             if (file) {
-                const formData = new FormData();
-                formData.append('image', file);
-                formData.append('fileId', fileId);
-                formData.append('from', 'message');
-                await dataProvider.create('image',formData, {headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }});
+                const fileSize = Math.round(file.size / 1024 / 1024);
+                const quality = fileSize >= 2 ? 0.4 : 0.6
+                new Compressor(file, { quality, async success(compressedImg) {
+                        const formData = new FormData();
+                        formData.append('image', compressedImg);
+                        formData.append('fileId', fileId);
+                        formData.append('from', 'message');
+                        await dataProvider.create('image',formData, {headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }});
+                    }
+                })
             }
             const response = await dataProvider.create('storage', {id: generateShortId(), title: type, detail: content, fileId});
-            console.log(response)
             if (response.success) {
                 alert('上传成功！');
+                redirect('/order');
             } else {
                 alert('上传失败，请重试！');
             }
@@ -142,7 +149,6 @@ const OperationBox = () => {
                 id="demo-simple-select"
                 variant="filled"
                 value={type}
-                defaultValue={'arrival'}
                 label="type"
                 onChange={handleTypeChange}
             >
