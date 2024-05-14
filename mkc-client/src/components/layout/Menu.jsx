@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import LabelIcon from '@mui/icons-material/Label';
 import MessageIcon from '@mui/icons-material/Message';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
 
 import {
     useTranslate,
@@ -34,7 +35,7 @@ const Menu = ({ dense = false }) => {
                 setUnconfirmedMessage(count);
             });
         }
-    }, []);
+    }, [socket]);
 
 
     const fetchUnconfirmedMessage = useCallback(async() => {
@@ -108,6 +109,15 @@ const Menu = ({ dense = false }) => {
                     smart_count: 2,
                 })}
                 leftIcon={<accessory.icon />}
+                dense={dense}
+            />
+            <MenuItemLink
+                to="/employee"
+                state={{ _scrollToTop: true }}
+                primaryText={translate(`resources.employee.name`, {
+                    smart_count: 2,
+                })}
+                leftIcon={<AccountBoxIcon />}
                 dense={dense}
             />
             <MenuItemLink

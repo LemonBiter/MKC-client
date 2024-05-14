@@ -22,7 +22,7 @@ import {
     TopToolbar,
     useListContext, useDataProvider, useTranslate, useGetIdentity,
 } from 'react-admin';
-import {useMediaQuery, Divider, Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody} from '@mui/material';
+import {useMediaQuery, Button, Divider, Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody} from '@mui/material';
 
 import NbItemsField from './NbItemsField';
 import CustomerReferenceField from '../../visitors/CustomerReferenceField';
@@ -35,13 +35,15 @@ import OrderShow from "./OrderShow";
 import {useLocation} from "react-router";
 import {matchPath} from "react-router-dom";
 import OrderEdit from "./OrderEdit";
-const ListActions = () => (
+import OrderDatagrid from "./OrderDatagrid";
+const ListActions = ({showList}) => (
     <TopToolbar sx={{ display: 'flex', alignItems: 'center'}}>
         <CreateButton
             variant="contained"
             label="创建订单"
             sx={{ height: '40px'}}
         />
+        <Button onClick={showList}>列表展示</Button>
         <FilterButton />
         {/*<SelectColumnsButton />*/}
         <ExportButton />
@@ -54,6 +56,14 @@ const OrderList = (props) => {
     const matchCreate = matchPath('/order/create', location.pathname);
     const matchShow = matchPath('/order/:id/show', location.pathname);
     const matchEdit = matchPath('/order/:id/edit', location.pathname);
+    const [listType, setListType] = useState('list');
+    const showList = () => {
+        if (listType === 'list') {
+            setListType('card');
+        } else {
+            setListType('list');
+        }
+    }
     return (
         <>
             <List
@@ -61,11 +71,11 @@ const OrderList = (props) => {
                 sort={{ field: 'index', order: 'ASC' }}
                 filters={orderFilters}
                 filterDefaultValues={{ sales_id: identity && identity?.id }}
-                actions={<ListActions />}
+                actions={<ListActions showList={showList} />}
                 pagination={false}
                 component="div"
             >
-                <OrderListContent />
+                {listType === 'card' ? <OrderListContent /> : <OrderDatagrid />}
             </List>
             <OrderShow open={!!matchShow} id={matchShow?.params.id} />
             {/*<OrderEdit open={!!matchEdit} id={matchEdit?.params.id} />*/}

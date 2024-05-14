@@ -121,7 +121,6 @@ export const MaterialItem = (props) => {
     const fetchImgUrl = useCallback(async () => {
         if (record.fileId) {
             const resp = await dataProvider.getImageBuffer('image', { id: record.fileId }, {responseType: 'blob'});
-            console.log(resp);
             const url = window.URL.createObjectURL(new Blob([resp.data]));
             setImgUrl(url);
         }
@@ -183,7 +182,11 @@ export const MaterialItem = (props) => {
                 <Button variant="text"
                         mt={2}
                         onClick={handleSupply}>补货申请</Button>
-                <SupplyDialog open={openDialog} info={{id: record.id, detail: record.detail}} handleCloseDialog={handleCloseDialog} />
+                <SupplyDialog open={openDialog} info={{
+                    id: record.id,
+                    detail: record.detail,
+                    fileId: record.fileId
+                }} handleCloseDialog={handleCloseDialog} />
             </Paper>
         </MuiLink>
     );
@@ -191,7 +194,7 @@ export const MaterialItem = (props) => {
 
 const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     const dispatch = useDispatch();
-    const { id, detail } = info;
+    const { id, detail, fileId } = info;
     const handleClick = (e) => {
         e.preventDefault();
     }
@@ -203,7 +206,7 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     }
     const handleAgree = async () => {
         const messageId = generateShortId();
-        const res = await dataProvider.create('message', { title: 'supply', id: messageId ,detail});
+        const res = await dataProvider.create('message', { title: 'supply', id: messageId, fileId, detail});
         if (res?.success) {
             dispatch(update());
             handleCloseDialog();

@@ -41,6 +41,8 @@ import OrderEdit from "./components/orders/OrderEdit"
 import MessageShow from "./components/message/messageShow";
 import {useSelector} from "react-redux";
 import StorageShow from "./components/storage/storageShow";
+import MessageList from "./components/message/messageList";
+import EmployeeList from "./components/employee/employeeList";
 
 
 export const App = () => {
@@ -53,15 +55,15 @@ export const App = () => {
                   authProvider={authProvider}
                   dashboard={Dashboard}>
               <Title title="Modern Kitchens Cabinets Admin"/>
-              <CustomRoutes>
-                  <Route path="/message" element={<MessageShow />} />
-              </CustomRoutes>
+              {/*<CustomRoutes>*/}
+              {/*    <Route path="/message" element={<MessageShow />} />*/}
+              {/*</CustomRoutes>*/}
               <CustomRoutes>
                   <Route path="/storage" element={<StorageShow />} />
               </CustomRoutes>
               <Resource
                   name="message"
-                  show={<MessageShow />}
+                  list={MessageList}
                    />
               <Resource
                   name="order"
@@ -75,6 +77,10 @@ export const App = () => {
                   {...accessory}
                   options={{label: 'Accessory'}}
                   name="accessory" />
+              <Resource
+                  list={<EmployeeList />}
+                  options={{label: 'Material'}}
+                  name="employee" />
           </Admin>
 )};
 

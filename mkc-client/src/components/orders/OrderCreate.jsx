@@ -352,7 +352,7 @@ const OrderCreate = () => {
     }
     return (
         // <Dialog open={true}>
-            <Create aaside={!isSmall ? <OrderAside roomInfo={roomInfo} /> : <Fragment/>} actions={<CreateActions />}>
+            <Create aside={<OrderAside roomInfo={roomInfo} />} actions={<CreateActions />}>
             <SimpleForm toolbar={<CreateToolBar />}
                         className="order-create-simple-form-wrap"
                         warnWhenUnsavedChanges

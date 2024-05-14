@@ -183,8 +183,11 @@ export const dataProvider = {
             filter: JSON.stringify({ id: params.ids}),
         };
         return request.delete(`${apiUrl}/${resource}/?${stringify(query)}`, params).then((resp) => {
+            console.log('resPL', resp);
             return   {
                 success: resp.data.success,
+                // data: resp?.data?.data,
+                data: []
             }
         });
     }
