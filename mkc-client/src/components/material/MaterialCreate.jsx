@@ -18,10 +18,11 @@ import {RichTextInput} from "ra-input-rich-text";
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Typography} from "@mui/material";
+import {Box, Card, Typography, useMediaQuery} from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/material/styles';
-import Button from '@mui/material/Button';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+// import Button from '@mui/material/Button';
+// import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Compressor from "compressorjs";
 
 const VisuallyHiddenInput = styled('input')({
@@ -40,9 +41,12 @@ const VisuallyHiddenInput = styled('input')({
 const MaterialCreate = () => {
     const notify = useNotify();
     const redirect = useRedirect();
+    const isSmall = useMediaQuery((theme) => theme.breakpoints.down("sm"));
     const [displayImg, setDisplayImg] = useState('');
     const [imgFile, setImgFile] = useState(null);
+    const [loading, setLoading] = useState(false);
     const handleSave = async (values) => {
+        setLoading(true);
         try {
             if (values) {
                 const id = generateShortId()
@@ -66,9 +70,11 @@ const MaterialCreate = () => {
                             const res = await dataProvider.create('material', values);
                             if (res.success) {
                                 notify('创建成功');
+                                setLoading(false);
                                 redirect('/material');
                             } else {
                                 notify('创建失败，使用了无效字段');
+                                setLoading(false);
                             }
 
                         }
@@ -77,53 +83,84 @@ const MaterialCreate = () => {
                     const res = await dataProvider.create('material', values);
                     if (res.success) {
                         notify('创建成功');
+                        setLoading(false);
                         redirect('/material');
                     } else {
                         notify('创建失败，使用了无效字段');
+                        setLoading(false);
                     }
                 }
             }
 
         } catch (e) {
-
+            console.log(e);
+            setLoading(false);
         }
 
     }
-    const handleImgUpload = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.click();
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            setImgFile(file);
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.addEventListener('load', (e) => {
-                setDisplayImg(e.target.result)
-            })
+
+    const handleCapture = (event) => {
+        const file = event.target.files[0];
+        setImgFile(file);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.addEventListener('load', (e) => {
+            setDisplayImg(e.target.result)
         })
-    }
+    };
+    // const handleImgUpload = async () => {
+    //     const input = document.createElement('input');
+    //     input.type = 'file';
+    //     input.accept='image/*';
+    //     // input.capture='environment';
+    //     input.click();
+    //     input.addEventListener('change', (e) => {
+    //         const file = e.target.files[0];
+    //         alert(file.name);
+    //         alert(file.type);
+    //         setImgFile(file);
+    //         const reader = new FileReader();
+    //         reader.readAsDataURL(file);
+    //         reader.addEventListener('load', (e) => {
+    //             setDisplayImg(e.target.result)
+    //         })
+    //     })
+    // }
     return (
         <Create>
-            <SimpleForm className="simple-form-wrap" onSubmit={handleSave}>
+            <SimpleForm className="simple-form-wrap"
+                        onSubmit={handleSave}>
                 <Typography variant="h6" gutterBottom>
                     物料详情
                 </Typography>
-                <Box className="form-box-wrap">
+                <Box className="form-box-wrap"
+                     sx={{
+                         display: 'flex',
+                         flexDirection: isSmall? 'column' : 'row',
+                }}>
                     <Box className="form-box-item left" >
                         <div className="img-upload">
                             {displayImg ? <img alt='' src={displayImg} /> : '图片上传(非必需)'}
                         </div>
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="contained"
-                            tabIndex={-1}
-                            startIcon={<CloudUploadIcon />}
-                            onClick={handleImgUpload}
-                        >
-                            Upload file
-                        </Button>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            // capture="environment"
+                            onChange={handleCapture}
+                        />
+                        <Box sx={{height: '50px'}}>
+                            {loading ? <CircularProgress /> : null}
+                        </Box>
+                        {/*<Button*/}
+                        {/*    component="label"*/}
+                        {/*    role={undefined}*/}
+                        {/*    variant="contained"*/}
+                        {/*    tabIndex={-1}*/}
+                        {/*    startIcon={<CloudUploadIcon />}*/}
+                        {/*    onClick={handleImgUpload}*/}
+                        {/*>*/}
+                        {/*    Upload file*/}
+                        {/*</Button>*/}
 
                     </Box>
                     <Box className="form-box-item right" >

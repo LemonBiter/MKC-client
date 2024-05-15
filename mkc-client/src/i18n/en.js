@@ -44,8 +44,13 @@ const customEnglishMessages = {
                 preparing: 'PREPARING',
                 delivered: 'DELIVERING',
                 assembling: 'ASSEMBLING',
+                ending: 'ENDING',
                 completed: 'COMPLETED',
             }
+        },
+        calendar: {
+            name: 'Calendar',
+            create: 'Create Event'
         },
         accessory: {
             name: 'Accessory'

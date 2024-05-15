@@ -24,11 +24,12 @@ import '../../css/material.css'
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Typography} from "@mui/material";
+import {Box, Card, Typography, useMediaQuery} from "@mui/material";
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Zoom from "react-medium-image-zoom";
 import Compressor from "compressorjs";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 // const EditToolbar = ({ displayImg }) => {
@@ -77,9 +78,11 @@ const ImageWrap = ({displayUrl}) => {
 const MaterialEdit = (props) => {
     const notify = useNotify();
     const redirect = useRedirect();
+    const isSmall = useMediaQuery((theme) => theme.breakpoints.down("sm"));
     const [displayImg, setDisplayImg] = useState('');
     const [imgFile, setImgFile] = useState(null);
     const [displayUrl, setDisplayUrl] = useState('')
+    const [loading, setLoading] = useState(false);
     const { record } = useEditController();
 
     useEffect(() => {
@@ -94,22 +97,32 @@ const MaterialEdit = (props) => {
     }, [record]);
 
 
-    const handleImgUpload = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.click();
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            setImgFile(file);
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.addEventListener('load', (e) => {
-                setDisplayUrl(e.target.result)
-            })
+    const handleCapture = (event) => {
+        const file = event.target.files[0];
+        setImgFile(file);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.addEventListener('load', (e) => {
+            setDisplayImg(e.target.result)
         })
-
-    }
+    };
+    // const handleImgUpload = async () => {
+    //     const input = document.createElement('input');
+    //     input.type = 'file';
+    //     input.click();
+    //     input.addEventListener('change', (e) => {
+    //         const file = e.target.files[0];
+    //         setImgFile(file);
+    //         const reader = new FileReader();
+    //         reader.readAsDataURL(file);
+    //         reader.addEventListener('load', (e) => {
+    //             setDisplayUrl(e.target.result)
+    //         })
+    //     })
+    //
+    // }
     const handleSave = async (values) => {
+        setLoading(true);
         try {
             if (values) {
                 if (imgFile) {
@@ -128,9 +141,11 @@ const MaterialEdit = (props) => {
                             const res = await dataProvider.update('material', values, '?from=update_info');
                             if (res.success) {
                                 notify('创建成功');
+                                setLoading(false);
                                 redirect('/material');
                             } else {
                                 notify('创建失败');
+                                setLoading(false);
                             }
                         }});
 
@@ -138,15 +153,19 @@ const MaterialEdit = (props) => {
                     const res = await dataProvider.update('material', values, '?from=update_info');
                     if (res.success) {
                         notify('创建成功');
+                        setLoading(false);
                         redirect('/material');
                     } else {
                         notify('创建失败');
+                        setLoading(false);
                     }
                 }
             } else {
                 notify('创建失败，使用了无效字段');
+                setLoading(false);
             }
         } catch (e) {
+            setLoading(false);
             console.log(e);
         }
 
@@ -157,19 +176,32 @@ const MaterialEdit = (props) => {
                 <Typography variant="h6" gutterBottom>
                     物料详情
                 </Typography>
-                <Box className="form-box-wrap">
+                <Box className="form-box-wrap"
+                     sx={{
+                         display: 'flex',
+                         flexDirection: isSmall? 'column' : 'row',
+                     }}>
                     <Box className="form-box-item left" >
                         <ImageWrap displayUrl={displayUrl} />
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="contained"
-                            tabIndex={-1}
-                            startIcon={<CloudUploadIcon />}
-                            onClick={handleImgUpload}
-                        >
-                            Upload file
-                        </Button>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            // capture="environment"
+                            onChange={handleCapture}
+                        />
+                        <Box sx={{height: '50px'}}>
+                            {loading ? <CircularProgress /> : null}
+                        </Box>
+                        {/*<Button*/}
+                        {/*    component="label"*/}
+                        {/*    role={undefined}*/}
+                        {/*    variant="contained"*/}
+                        {/*    tabIndex={-1}*/}
+                        {/*    startIcon={<CloudUploadIcon />}*/}
+                        {/*    onClick={handleImgUpload}*/}
+                        {/*>*/}
+                        {/*    Upload file*/}
+                        {/*</Button>*/}
 
                     </Box>
                     <Box className="form-box-item right" >

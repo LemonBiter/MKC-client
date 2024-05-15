@@ -49,8 +49,13 @@ const customChineseMessages = {
                 preparing: '制作中',
                 delivered: '已送达',
                 assembling: '安装中',
+                ending: '收尾中',
                 completed: '已完成',
             }
+        },
+        calendar: {
+            name: '日历事件',
+            create: '新建事件'
         },
         accessory: {
             name: '配件'

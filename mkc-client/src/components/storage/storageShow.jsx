@@ -43,9 +43,6 @@ const StorageShow = () => {
             }}>
                 <h2>提交库存申请</h2>
                 <OperationBox />
-                {/*{messages? messages.map((m, i) => (*/}
-                {/*    <MessageItem handleRefresh={handleRefresh} m={m} key={i} />*/}
-                {/*)) : null}*/}
             </Box>
         </Box>
     )

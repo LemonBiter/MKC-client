@@ -56,7 +56,7 @@ const OrderList = (props) => {
     const matchCreate = matchPath('/order/create', location.pathname);
     const matchShow = matchPath('/order/:id/show', location.pathname);
     const matchEdit = matchPath('/order/:id/edit', location.pathname);
-    const [listType, setListType] = useState('list');
+    const [listType, setListType] = useState('card');
     const showList = () => {
         if (listType === 'list') {
             setListType('card');

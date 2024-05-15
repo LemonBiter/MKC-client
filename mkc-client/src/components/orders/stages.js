@@ -1,5 +1,5 @@
 
-export const stages = ['ordered', 'preparing', 'delivered', 'assembling', 'completed']
+export const stages = ['ordered', 'preparing', 'delivered', 'assembling', 'ending', 'completed']
 
 
 export const stageNames = {

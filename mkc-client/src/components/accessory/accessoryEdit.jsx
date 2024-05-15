@@ -24,10 +24,11 @@ import '../../css/accessory.css'
 import generateShortId from "ssid";
 import {dataProvider} from "../../dataProvider";
 import {Fragment, useEffect, useState} from "react";
-import {Box, Card, Typography} from "@mui/material";
+import {Box, Card, Typography, useMediaQuery} from "@mui/material";
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Zoom from "react-medium-image-zoom";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 // const EditToolbar = ({ displayImg }) => {
@@ -78,6 +79,8 @@ const AccessoryEdit = (props) => {
     const redirect = useRedirect();
     const [displayUrl, setDisplayUrl] = useState('');
     const [imgFile, setImgFile] = useState(null);
+    const isSmall = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+    const [loading, setLoading] = useState(false);
     const { record } = useEditController();
     useEffect(() => {
         if (record?.fileId) {
@@ -89,22 +92,32 @@ const AccessoryEdit = (props) => {
             fetchImg();
         }
     }, [record]);
-    const handleImgUpload = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.click();
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            setImgFile(file);
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.addEventListener('load', (e) => {
-                setDisplayUrl(e.target.result)
-            })
+    // const handleImgUpload = async () => {
+    //     const input = document.createElement('input');
+    //     input.type = 'file';
+    //     input.click();
+    //     input.addEventListener('change', (e) => {
+    //         const file = e.target.files[0];
+    //         setImgFile(file);
+    //         const reader = new FileReader();
+    //         reader.readAsDataURL(file);
+    //         reader.addEventListener('load', (e) => {
+    //             setDisplayUrl(e.target.result)
+    //         })
+    //     })
+    //
+    // }
+    const handleCapture = (event) => {
+        const file = event.target.files[0];
+        setImgFile(file);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.addEventListener('load', (e) => {
+            setDisplayUrl(e.target.result);
         })
-
-    }
+    };
     const handleSave = async (values) => {
+        setLoading(true);
         try {
             if (values) {
                 const id = generateShortId()
@@ -121,13 +134,16 @@ const AccessoryEdit = (props) => {
                 const res = await dataProvider.update('accessory', values, '?from=update_info');
                 if (res.success) {
                     notify('创建成功');
+                    setLoading(false);
                     redirect('/accessory');
                 }
             } else {
+                setLoading(false);
                 notify('创建失败，使用了无效字段');
             }
         } catch (e) {
-
+            setLoading(false);
+            console.log(e);
         }
 
     }
@@ -137,19 +153,31 @@ const AccessoryEdit = (props) => {
                 <Typography variant="h6" gutterBottom>
                     物料详情
                 </Typography>
-                <Box className="form-box-wrap">
+                <Box className="form-box-wrap" sx={{
+                    display: 'flex',
+                    flexDirection: isSmall? 'column' : 'row',
+                }}>
                     <Box className="form-box-item left" >
                         <ImageWrap displayUrl={displayUrl} />
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="contained"
-                            tabIndex={-1}
-                            startIcon={<CloudUploadIcon />}
-                            onClick={handleImgUpload}
-                        >
-                            Upload file
-                        </Button>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            // capture="environment"
+                            onChange={handleCapture}
+                        />
+                        <Box sx={{height: '50px'}}>
+                            {loading ? <CircularProgress /> : null}
+                        </Box>
+                        {/*<Button*/}
+                        {/*    component="label"*/}
+                        {/*    role={undefined}*/}
+                        {/*    variant="contained"*/}
+                        {/*    tabIndex={-1}*/}
+                        {/*    startIcon={<CloudUploadIcon />}*/}
+                        {/*    onClick={handleImgUpload}*/}
+                        {/*>*/}
+                        {/*    Upload file*/}
+                        {/*</Button>*/}
 
                     </Box>
                     <Box className="form-box-item right" >

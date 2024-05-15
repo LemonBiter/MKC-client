@@ -71,6 +71,7 @@ const MessageItem = () => {
 
     return (<Box sx={{
         display: 'flex',
+        flexDirection: isSmall ? 'column' : 'row',
         justifyContent: 'space-between',
         paddingRight: '50px'}}>
         <Box sx={{flex: '1.2'}}>

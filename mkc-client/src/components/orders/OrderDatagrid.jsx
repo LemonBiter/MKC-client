@@ -33,6 +33,7 @@ const StageField = () => {
         preparing: '#fee140',
         delivered: '#a1c4fd',
         assembling: '#1abc9c',
+        ending: '#FFA500',
         completed: '#bdc3c7',
     }
     return (<Box display='flex' alignItems="center">

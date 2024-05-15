@@ -5,6 +5,7 @@ import LabelIcon from '@mui/icons-material/Label';
 import MessageIcon from '@mui/icons-material/Message';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 import {
     useTranslate,
@@ -72,6 +73,15 @@ const Menu = ({ dense = false }) => {
             }}
         >
             <DashboardMenuItem />
+            <MenuItemLink
+                to="/calendar"
+                state={{ _scrollToTop: true }}
+                primaryText={translate(`resources.calendar.name`, {
+                    smart_count: 2,
+                })}
+                leftIcon={<CalendarMonthIcon />}
+                dense={dense}
+            />
             <MenuItemLink
                 to="/message"
                 state={{ _scrollToTop: true }}

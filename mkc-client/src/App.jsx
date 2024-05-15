@@ -43,6 +43,7 @@ import {useSelector} from "react-redux";
 import StorageShow from "./components/storage/storageShow";
 import MessageList from "./components/message/messageList";
 import EmployeeList from "./components/employee/employeeList";
+import CalendarShow from "./components/calendar/calendarShow";
 
 
 export const App = () => {
@@ -55,6 +56,9 @@ export const App = () => {
                   authProvider={authProvider}
                   dashboard={Dashboard}>
               <Title title="Modern Kitchens Cabinets Admin"/>
+              <CustomRoutes>
+                  <Route path="/calendar" element={<CalendarShow />} />
+              </CustomRoutes>
               {/*<CustomRoutes>*/}
               {/*    <Route path="/message" element={<MessageShow />} />*/}
               {/*</CustomRoutes>*/}

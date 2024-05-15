@@ -151,6 +151,10 @@
     background: #1abc9c;
 }
 
+.stage-ball.ending {
+    background: #FFA500;
+}
+
 .stage-ball.completed {
     background: #bdc3c7;
 }
@@ -181,6 +185,10 @@
 
 .order-show-status-ball.assembling {
     background: #1abc9c;
+}
+
+.order-show-status-ball.ending {
+    background: #FFA500;
 }
 
 .order-show-status-ball.completed {
