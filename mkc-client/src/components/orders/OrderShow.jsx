@@ -81,6 +81,13 @@ const OrderShowContent = () => {
     const [materialArray, setMaterialArray] = useState([]);
     const [accessoryArray, setAccessoryArray] = useState([]);
 
+    const csvHeader = [
+        { label: "下单日期", key: "published_date" },
+        { label: "姓名", key: "name" },
+        { label: "电话", key: "phone" },
+        { label: "状态", key: "stage" },
+        // { label: "电话", key: "phone" },
+    ];
     useEffect(() => {
         if (record && record?.roomInfo) {
             const { mArr, aArr } = calculateCount(record?.roomInfo);
@@ -96,16 +103,17 @@ const OrderShowContent = () => {
         }
     }
 
-    // useEffect(() => {
-    //     if (csvExportData?.length) {
-    //         csvLinkRef.current.link.click();
-    //     }
-    // }, [csvExportData]);
+    useEffect(() => {
+        if (csvExportData?.length) {
+            csvLinkRef.current.link.click();
+        }
+    }, [csvExportData]);
 
     const handleOrderExport = useCallback(async () => {
         const { data } = await dataProvider.getOne('order', {id: record.id });
         if (!data) return null;
         const csvData = parseOrderDataToCSV(data);
+        console.log(csvData);
         setCsvExportData(csvData);
     }, []);
 
@@ -156,7 +164,7 @@ const OrderShowContent = () => {
                                 <FileDownloadIcon />
                                 导出订单内容
                             </Button>
-                            <CSVLink data={csvExportData}
+                            <CSVLink headers={csvHeader} data={csvExportData}
                                      ref={csvLinkRef}>
                             </CSVLink>
                         </Box> : null }

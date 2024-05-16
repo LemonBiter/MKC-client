@@ -14,7 +14,6 @@ import {
     ReferenceInput,
     SearchInput,
     SelectColumnsButton,
-    TextField,
     TextInput,
     TopToolbar,
     useListContext,
@@ -23,10 +22,10 @@ import {
     RecordContextProvider,
     useCreatePath,
     useRecordContext,
-    SelectField,
+    SelectField, useNotify,
 } from 'react-admin';
 import 'react-medium-image-zoom/dist/styles.css'
-import {Button, Box, Paper, Typography, Link as MuiLink, Dialog, DialogTitle, DialogActions, DialogContent} from "@mui/material";
+import {Button, Box, Paper, Typography, TextField, Link as MuiLink, Dialog, DialogTitle, DialogActions, DialogContent} from "@mui/material";
 import { Link } from 'react-router-dom';
 import Zoom from "react-medium-image-zoom";
 import '../../css/index.css'
@@ -154,7 +153,7 @@ export const MaterialItem = (props) => {
             <Paper
                 sx={{
                     height: '240px',
-                    width: 195,
+                    width: '175px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -194,6 +193,9 @@ export const MaterialItem = (props) => {
 
 const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     const dispatch = useDispatch();
+    const notify = useNotify();
+    const [postedBy, setPostedBy] = useState('');
+
     const { id, detail, fileId } = info;
     const handleClick = (e) => {
         e.preventDefault();
@@ -204,9 +206,17 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
     const handleDisagree = () => {
         handleCloseDialog();
     }
+    const handlePostedBy = (event) => {
+        const value = event.target.value;
+        setPostedBy(value);
+    }
     const handleAgree = async () => {
         const messageId = generateShortId();
-        const res = await dataProvider.create('message', { title: 'supply', id: messageId, fileId, detail});
+        if (!postedBy) {
+            notify('请填写提交人员姓名');
+            return;
+        }
+        const res = await dataProvider.create('message', { title: 'supply', postedBy, id: messageId, fileIds: [fileId], detail});
         if (res?.success) {
             dispatch(update());
             handleCloseDialog();
@@ -217,7 +227,9 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
             确认提交 ({detail}) 的补货申请?
         </DialogTitle>
         <DialogContent>
-            提交后申请将被等待确认
+            {/*提交后申请将被等待确认*/}
+            <TextField  onChange={handlePostedBy}
+                        label="提交人员" />
         </DialogContent>
         <DialogActions>
             <Button onClick={handleDisagree}>取消</Button>

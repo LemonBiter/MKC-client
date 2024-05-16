@@ -22,7 +22,19 @@ import {
     TopToolbar,
     useListContext, useDataProvider, useTranslate, useGetIdentity,
 } from 'react-admin';
-import {useMediaQuery, Button, Divider, Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody} from '@mui/material';
+import {
+    useMediaQuery,
+    Button,
+    Divider,
+    Tabs,
+    Tab,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Box
+} from '@mui/material';
 
 import NbItemsField from './NbItemsField';
 import CustomerReferenceField from '../../visitors/CustomerReferenceField';
@@ -84,20 +96,21 @@ const OrderList = (props) => {
 
 const orderFilters = [
     <SearchInput source="q" alwaysOn />,
-    <ReferenceInput source="customer_id" reference="customers">
-        <AutocompleteInput
-            optionText={(choice) =>
-                choice?.id // the empty choice is { id: '' }
-                    ? `${choice.first_name} ${choice.last_name}`
-                    : ''
-            }
-            sx={{ minWidth: 200 }}
-        />
-    </ReferenceInput>,
-    <DateInput source="date_gte" />,
-    <DateInput source="date_lte" />,
-    <TextInput source="total_gte" />,
-    <NullableBooleanInput source="returned" />,
+    <TextInput source="order_item" label="板材配件" />,
+    // <ReferenceInput source="customer_id" reference="customers">
+    //     <AutocompleteInput
+    //         optionText={(choice) =>
+    //             choice?.id // the empty choice is { id: '' }
+    //                 ? `${choice.first_name} ${choice.last_name}`
+    //                 : ''
+    //         }
+    //         sx={{ minWidth: 200 }}
+    //     />
+    // </ReferenceInput>,
+    // <DateInput source="date_gte" />,
+    // <DateInput source="date_lte" />,
+    // <TextInput source="total_gte" />,
+    // <NullableBooleanInput source="returned" />,
 ];
 
 export default OrderList;

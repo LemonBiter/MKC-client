@@ -30,47 +30,62 @@ export const calculateCount = (roomInfo) => {
 
 export const parseOrderDataToCSV = (data) => {
     delete data?.index;
+
+    // const transformDataForVerticalCSV = (initData) => {
+    //     const initDataArr = [initData];
+    //     const keys = Object.keys(initDataArr[0]); // 获取键名作为标题
+    //     console.log(keys);
+    //     const transformedData = keys.map(key => ({
+    //         property: key,
+    //         ...initDataArr.reduce((acc, cur, index) => ({ ...acc, [`value${index + 1}`]: cur[key] }), {})
+    //     }));
+    //     return transformedData;
+    // };
+    //
+    // const verticalData = transformDataForVerticalCSV(data);
+    //
+    // console.log(verticalData);
     // name, phone, email, address, stage, roomInfo, additional, id
-    let roomInfoExist = false;
-    let additionalExist = false;
-    const finalArray = [];
-    const titles = [];
-    const values = [];
-    for(let i in data) {
-        if (i === 'published_date') {
-            data[i] = new Date(data[i]).toLocaleString();
-            console.log(data[i]);
-        }
-        if (i === 'roomInfo') {
-            if (Object.values(data['roomInfo'])?.length) {
-                roomInfoExist = true;
-            }
-            continue;
-        }
-        if (i === 'additional') {
-            if (Object.values(data['additional'])?.length) {
-                additionalExist = true;
-            }
-            continue;
-        }
-        titles.push(i);
-        values.push(data[i]);
-    }
-    if (additionalExist) {
-        const notes = data['additional'];
-        console.log(notes);
-        let index = 1;
-        notes.forEach(({ type, value }) => {
-            if (type === 'text') {
-                titles.push('备注信息-' + (index++));
-                values.push(value);
-            }
-        })
-    }
-    if (roomInfoExist) {
-        const roomInfoData = data['roomInfo'];
-    }
-    finalArray.push(titles)
-    finalArray.push(values)
+    // let roomInfoExist = false;
+    // let additionalExist = false;
+
+    // const titles = [];
+    // const values = [];
+    // for(let i in data) {
+    //     if (i === 'published_date') {
+    //         data[i] = new Date(data[i]).toLocaleString();
+    //     }
+    //     if (i === 'roomInfo') {
+    //         if (Object.values(data['roomInfo'])?.length) {
+    //             roomInfoExist = true;
+    //         }
+    //         continue;
+    //     }
+    //     if (i === 'additional') {
+    //         if (Object.values(data['additional'])?.length) {
+    //             additionalExist = true;
+    //         }
+    //         continue;
+    //     }
+    //     titles.push(i);
+    //     values.push(data[i]);
+    // }
+    // if (additionalExist) {
+    //     const notes = data['additional'];
+    //     console.log(notes);
+    //     let index = 1;
+    //     notes.forEach(({ type, value }) => {
+    //         if (type === 'text') {
+    //             titles.push('备注信息-' + (index++));
+    //             values.push(value);
+    //         }
+    //     })
+    // }
+    // if (roomInfoExist) {
+    //     const roomInfoData = data['roomInfo'];
+    // }
+    // finalArray.push(titles)
+    // finalArray.push(values)
+    const finalArray = [data];
     return finalArray;
 }

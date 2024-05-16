@@ -44,6 +44,7 @@ import StorageShow from "./components/storage/storageShow";
 import MessageList from "./components/message/messageList";
 import EmployeeList from "./components/employee/employeeList";
 import CalendarShow from "./components/calendar/calendarShow";
+import EmployeeCreate from "./components/employee/employeeCreate";
 
 
 export const App = () => {
@@ -83,6 +84,7 @@ export const App = () => {
                   name="accessory" />
               <Resource
                   list={<EmployeeList />}
+                  create={<EmployeeCreate />}
                   options={{label: 'Material'}}
                   name="employee" />
           </Admin>

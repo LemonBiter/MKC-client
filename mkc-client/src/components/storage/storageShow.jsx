@@ -8,6 +8,7 @@ import Compressor from 'compressorjs';
 import {useDispatch, useSelector} from "react-redux";
 import { update } from '../../app/message'
 import * as React from "react";
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 const StorageShow = () => {
     const [messages, setMessages] = useState([]);
@@ -95,7 +96,7 @@ const topics = {supply: '补货申请'}
 const OperationBox = () => {
     const redirect = useRedirect();
     const isSmall = useMediaQuery(theme => theme.breakpoints.down('sm'));
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState([]);
     const notify = useNotify();
     const [content, setContent] = useState('');
     const [type, setType] = useState('arrival');
@@ -105,7 +106,7 @@ const OperationBox = () => {
     };
     const handleCapture = (event) => {
         const file = event.target.files[0];
-        setFile(file);
+        setFiles([...files, file]);
     };
     const handleTextChange = (event) => {
         const content = event.target.value;
@@ -123,34 +124,53 @@ const OperationBox = () => {
                 return;
             }
             const messageId = generateShortId();
-            const fileId = file ? generateShortId() : '';
+            const fileIds = []
+            if (files?.length) {
+                Promise.all(files.map(file => {
+                    const fileId = generateShortId();
+                    fileIds.push(fileId);
+                    const fileSize = Math.round(file.size / 1024 / 1024);
+                    const quality = fileSize >= 2 ? 0.4 : 0.6
+                    new Compressor(file, { quality, async success(compressedImg) {
+                            const formData = new FormData();
+                            formData.append('image', compressedImg);
+                            formData.append('fileId', fileId);
+                            formData.append('belongTo', messageId);
+                            formData.append('from', 'message');
+                            await dataProvider.create('image',formData, {headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }});
+                        }
+                    })
+                })).then(async () => {
 
-            if (file) {
-                const fileSize = Math.round(file.size / 1024 / 1024);
-                const quality = fileSize >= 2 ? 0.4 : 0.6
-                new Compressor(file, { quality, async success(compressedImg) {
-                        const formData = new FormData();
-                        formData.append('image', compressedImg);
-                        formData.append('fileId', fileId);
-                        formData.append('belongTo', messageId);
-                        formData.append('from', 'message');
-                        await dataProvider.create('image',formData, {headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }});
+                    const response = await dataProvider.create('storage', { id: messageId, title: type, postedBy, detail: content, fileIds });
+                    if (response.success) {
+                        redirect('/order');
+                    } else {
+                        notify('上传失败，请重试！');
                     }
                 })
-            }
-            const response = await dataProvider.create('storage', {id: messageId, title: type, postedBy, detail: content, fileId});
-            if (response.success) {
-                notify('上传成功！');
-                redirect('/order');
             } else {
-                notify('上传失败，请重试！');
+                const response = await dataProvider.create('storage', { id: messageId, title: type, postedBy, detail: content, fileIds });
+                if (response.success) {
+                    notify('上传成功！');
+                    redirect('/order');
+                } else {
+                    notify('上传失败，请重试！');
+                }
             }
+
+
         } catch (error) {
             notify('上传过程中出现错误！');
         }
     };
+
+    const handleRemoveFile = async (file) => {
+        const newFiles = files.filter((item) => item !== file);
+        setFiles(newFiles);
+    }
 
     return (<Box className="storage-operation"
                  sx={{
@@ -173,13 +193,26 @@ const OperationBox = () => {
                 {/*<MenuItem value={30}>Thirty</MenuItem>*/}
             </Select>
         </FormControl>
-        <Box mb={6}>
+        <Box mb={3}>
             <input
                 type="file"
                 accept="image/*"
-                capture="environment"
+                // capture="environment"
                 onChange={handleCapture}
             />
+            <ul>
+                {files.map((file, index) => {
+                    return(
+                        <li key={index} style={{display: 'flex', margin: '10px 0'}}>
+                            {file.name}
+                            <RemoveCircleOutlineIcon
+                                onClick={() => handleRemoveFile(file)}
+                                sx={{cursor: 'pointer', marginLeft: '15px'}} />
+                        </li>
+                    )
+                })}
+
+            </ul>
         </Box>
         <Box>
             <TextField sx={{marginBottom: '30px', width: isSmall ? '80px' : '150px'}}

@@ -142,9 +142,11 @@ export const dataProvider = {
     create: (resource, params, config) => {
             const url = `${resource}/create_${resource}`
             return request.post(url, params, config).then((resp) => {
+                console.log(resp);
                 return   {
                     success: resp?.data?.success,
                     data: resp?.data?.data,
+                    name: resp?.data?.data?.name,
                     message: resp?.data?.message || ''
                 }
             });

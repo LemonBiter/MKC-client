@@ -150,7 +150,7 @@ export const AccessoryItem = (props) => {
             <Paper
                 sx={{
                     height: '240px',
-                    width: 195,
+                    width: '175px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -209,7 +209,7 @@ const SupplyDialog = ({ open, info, handleCloseDialog }) => {
             notify('请填写提交人员姓名');
             return;
         }
-        const res = await dataProvider.create('message', { title: 'supply', postedBy, id: messageId, fileId, detail});
+        const res = await dataProvider.create('message', { title: 'supply', postedBy, id: messageId, fileIds: [fileId], detail});
         if (res?.success) {
             dispatch(update());
             handleCloseDialog();
